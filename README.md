@@ -13,9 +13,9 @@ permissions, human confirmation for destructive actions, a complete audit
 trail, and a measured success rate. Everything here exists to make those four
 things verifiable rather than claimed.
 
-> **Status: phase 1 of 5 complete.** The domain, the database, the migrations,
-> the seed and the test suite are done. The web UI, the MCP server, the agent
-> and the eval suite are next. This README grows with them.
+> **Status: phases 1 and 2 of 5 complete.** The domain, the database and the
+> web application are running. The MCP server, the agent and the eval suite are
+> next. This README grows with them.
 
 ---
 
@@ -29,7 +29,8 @@ things verifiable rather than claimed.
 | Tenant isolation     | Row level security, attacked from five directions by tests            |
 | Demo data            | 90 days of reproducible trading, generated through the real use cases |
 | Tests                | 248 passing, 96% line coverage on the domain, property-based          |
-| Web UI               | Phase 2                                                               |
+| Authentication       | Auth.js v5, five roles, a Postgres role that can only read `users`    |
+| Web UI               | 19 routes, role-filtered, dark and light                              |
 | MCP server           | Phase 3                                                               |
 | Agent with approvals | Phase 4                                                               |
 | Eval suite           | Phase 5                                                               |
@@ -48,7 +49,7 @@ That leaves a database with 40 products, 12 customers, 6 suppliers and 90 days
 of trading: invoiced orders, receivables both settled and overdue, purchase
 receipts, daily cash sessions, and a deliberate replenishment backlog.
 
-Sign in (once the UI lands in phase 2) with `admin@ledgerhand.dev` and the
+Then `pnpm --filter @ledgerhand/web dev` and sign in with `admin@ledgerhand.dev` and the
 password from `SEED_PASSWORD`. There is one user per role: `admin`, `sales`,
 `finance`, `stock`, `readonly`.
 
