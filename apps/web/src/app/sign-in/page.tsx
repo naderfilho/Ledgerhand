@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Wordmark } from '@/components/app/wordmark'
 import { redirect } from 'next/navigation'
 import type * as React from 'react'
 import { SignInForm } from '@/components/app/sign-in-form'
@@ -54,7 +55,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
               />
             </svg>
           </span>
-          <span className="text-sm font-semibold tracking-tight">Ledgerhand</span>
+          <Wordmark size="sm" />
         </div>
 
         <div className="relative max-w-md space-y-8">

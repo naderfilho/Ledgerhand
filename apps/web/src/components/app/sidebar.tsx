@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { Wordmark } from '@/components/app/wordmark'
 import Link from 'next/link'
 import type * as React from 'react'
 import { iconFor } from '@/lib/icons'
@@ -24,9 +25,8 @@ export function Sidebar({
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-(--spacing-sidebar) flex-col border-r border-border bg-surface-sunken lg:flex">
       <div className="flex h-(--spacing-topbar) shrink-0 items-center gap-2.5 border-b border-border px-5">
-        <LedgerhandMark />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold tracking-tight">Ledgerhand</p>
+          <Wordmark size="sm" className="block truncate" />
           <p className="truncate text-[0.6875rem] leading-tight text-muted-foreground">
             {tenantName}
           </p>
@@ -78,30 +78,5 @@ export function Sidebar({
         </p>
       </div>
     </aside>
-  )
-}
-
-function LedgerhandMark(): React.JSX.Element {
-  return (
-    <span
-      aria-hidden
-      className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs"
-    >
-      <svg viewBox="0 0 24 24" fill="none" className="size-4.5">
-        <path
-          d="M5 4v13.5A2.5 2.5 0 0 0 7.5 20H19"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M9 15.5 12.5 12l3 3L20 9.5"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
   )
 }

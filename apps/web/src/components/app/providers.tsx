@@ -6,7 +6,13 @@ import { Toaster } from 'sonner'
 
 export function Providers({ children }: { readonly children: React.ReactNode }): React.JSX.Element {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      storageKey="ledgerhand-theme"
+      disableTransitionOnChange
+    >
       {children}
       <Toaster
         position="bottom-right"

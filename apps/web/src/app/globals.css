@@ -18,6 +18,7 @@
  */
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-display), 'Inter', ui-sans-serif, system-ui;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   --radius-xs: 0.25rem;
@@ -33,32 +34,44 @@
 }
 
 :root {
+  /* ---------------------------------------------------------------------
+   * The palette is the logo, and nothing else.
+   *
+   *   white   the ground, plain #fff, so the interface reads as paper
+   *   navy    the letters of "Ledger", carrying every piece of text
+   *   blue    the letters of "Hand", carrying every action and every focus
+   *
+   * Three colours is a constraint, not a shortage: the semantic states below
+   * are the only exceptions, and each earns its place by meaning something a
+   * reader has to notice.
+   * ------------------------------------------------------------------- */
+
   /* Surfaces, from furthest back to closest to the reader. */
-  --background: oklch(0.985 0.002 250);
+  --background: oklch(1 0 0);
   --surface: oklch(1 0 0);
   --surface-raised: oklch(1 0 0);
-  --surface-sunken: oklch(0.968 0.003 250);
+  --surface-sunken: oklch(0.975 0.004 265);
 
-  --foreground: oklch(0.21 0.012 260);
-  --muted: oklch(0.955 0.004 250);
-  --muted-foreground: oklch(0.505 0.012 258);
+  --foreground: oklch(0.215 0.036 262);
+  --muted: oklch(0.966 0.005 265);
+  --muted-foreground: oklch(0.52 0.025 262);
 
-  --border: oklch(0.912 0.005 255);
-  --border-strong: oklch(0.855 0.008 255);
-  --input: oklch(0.912 0.005 255);
-  --ring: oklch(0.55 0.19 275);
+  --border: oklch(0.915 0.008 265);
+  --border-strong: oklch(0.855 0.012 265);
+  --input: oklch(0.9 0.01 265);
+  --ring: oklch(0.52 0.235 272);
 
   /* One accent, used for the primary action and for focus. */
-  --primary: oklch(0.545 0.192 275);
-  --primary-hover: oklch(0.495 0.19 275);
-  --primary-foreground: oklch(0.99 0.005 275);
-  --primary-subtle: oklch(0.955 0.025 275);
+  --primary: oklch(0.52 0.235 272);
+  --primary-hover: oklch(0.465 0.235 272);
+  --primary-foreground: oklch(1 0 0);
+  --primary-subtle: oklch(0.955 0.032 272);
 
-  --secondary: oklch(0.96 0.004 250);
-  --secondary-foreground: oklch(0.28 0.012 260);
+  --secondary: oklch(0.966 0.005 265);
+  --secondary-foreground: oklch(0.28 0.03 262);
 
-  --accent: oklch(0.955 0.006 255);
-  --accent-foreground: oklch(0.24 0.012 260);
+  --accent: oklch(0.958 0.008 265);
+  --accent-foreground: oklch(0.245 0.034 262);
 
   /* Semantic states. Each has a solid tone and a subtle wash for badges. */
   --positive: oklch(0.58 0.14 155);
@@ -84,22 +97,24 @@
 }
 
 .dark {
-  --background: oklch(0.178 0.011 265);
-  --surface: oklch(0.214 0.012 265);
-  --surface-raised: oklch(0.245 0.013 265);
-  --surface-sunken: oklch(0.158 0.01 265);
+  /* The same three colours inverted: the navy becomes the ground and the
+   * blue lightens just enough to stay legible on it. */
+  --background: oklch(0.185 0.032 262);
+  --surface: oklch(0.222 0.034 262);
+  --surface-raised: oklch(0.252 0.036 262);
+  --surface-sunken: oklch(0.162 0.03 262);
 
-  --foreground: oklch(0.955 0.004 250);
-  --muted: oklch(0.256 0.013 265);
-  --muted-foreground: oklch(0.685 0.014 258);
+  --foreground: oklch(0.965 0.006 265);
+  --muted: oklch(0.262 0.032 262);
+  --muted-foreground: oklch(0.7 0.024 265);
 
-  --border: oklch(0.298 0.014 265);
-  --border-strong: oklch(0.365 0.016 265);
-  --input: oklch(0.298 0.014 265);
-  --ring: oklch(0.66 0.17 275);
+  --border: oklch(0.305 0.032 262);
+  --border-strong: oklch(0.375 0.036 262);
+  --input: oklch(0.305 0.032 262);
+  --ring: oklch(0.66 0.2 272);
 
-  --primary: oklch(0.63 0.18 275);
-  --primary-hover: oklch(0.685 0.175 275);
+  --primary: oklch(0.645 0.205 272);
+  --primary-hover: oklch(0.7 0.19 272);
   --primary-foreground: oklch(0.15 0.02 275);
   --primary-subtle: oklch(0.27 0.055 275);
 
