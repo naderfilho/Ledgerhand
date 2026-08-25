@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tooling/tsconfig/base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "incremental": false,
+    "types": ["node"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": ["*.config.ts"],
+  "references": [
+    {
+      "path": "packages/domain"
+    },
+    {
+      "path": "packages/db"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Prettier is configured for LF, and CI checks formatting. Without this, a
+# Windows checkout would rewrite every file to CRLF and fail `format:check`
+# before a single line of code had changed.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.pdf binary
+*.ico binary
+
+pnpm-lock.yaml linguist-generated=true
+packages/db/drizzle/meta/*.json linguist-generated=true

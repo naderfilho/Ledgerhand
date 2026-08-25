@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Ledgerhand library (Node ESM)",
+  "extends": "./base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "**/*.test.ts"]
+}

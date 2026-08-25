@@ -1,0 +1,42 @@
+{
+  "name": "ledgerhand",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=22 <25"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "clean": "tsc -b tsconfig.build.json --clean && rimraf \"packages/*/dist\"",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "db:generate": "pnpm --filter @ledgerhand/db db:generate",
+    "db:migrate": "pnpm --filter @ledgerhand/db db:migrate",
+    "db:seed": "pnpm --filter @ledgerhand/db db:seed",
+    "db:reset": "pnpm --filter @ledgerhand/db db:reset",
+    "verify": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.34.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4",
+    "@ledgerhand/eslint-config": "workspace:*"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
