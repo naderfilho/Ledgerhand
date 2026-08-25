@@ -11,6 +11,12 @@ out/
 .env.*.local
 !.env.example
 
+# Written by `next dev` on every run, and its own note asks to commit it.
+# It is agent tooling, not part of the application, so it stays out of the
+# repository -- see next/dist/server/lib/generate-agent-files.js.
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
+
 .pglite/
 tmp/
 *.log
