@@ -78,3 +78,57 @@ jobs:
           path: coverage/
           retention-days: 7
           if-no-files-found: ignore
+
+  evals:
+    name: Evals
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The suite calls a real model, so it needs a real key. Pull requests from
+    # forks do not get one, and that is fine: the job says so and stops rather
+    # than failing for a reason a contributor cannot fix.
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      AGENT_MODEL: claude-sonnet-5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: No key configured
+        if: env.ANTHROPIC_API_KEY == ''
+        run: |
+          echo "ANTHROPIC_API_KEY is not set, so the eval suite did not run." >> "$GITHUB_STEP_SUMMARY"
+
+      # k=1 in CI: enough to catch a guardrail that broke, cheap enough to run
+      # on every push. The rate quoted in the README is measured at k=3.
+      - name: Run the scenarios
+        if: env.ANTHROPIC_API_KEY != ''
+        run: pnpm evals --k 1 --markdown evals.md --json evals.json --quiet
+
+      - name: Report
+        if: always() && env.ANTHROPIC_API_KEY != ''
+        run: cat evals.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the transcripts
+        if: always() && env.ANTHROPIC_API_KEY != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: evals
+          path: |
+            evals.md
+            evals.json
+          retention-days: 14
+          if-no-files-found: ignore

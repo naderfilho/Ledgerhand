@@ -24,6 +24,9 @@
     },
     {
       "path": "packages/agent"
+    },
+    {
+      "path": "packages/evals"
     }
   ]
 }

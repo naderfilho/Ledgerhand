@@ -1,0 +1,14 @@
+{
+  "extends": "@ledgerhand/tsconfig/library.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "**/*.test.ts"],
+  "references": [
+    { "path": "../domain/tsconfig.build.json" },
+    { "path": "../mcp-server/tsconfig.build.json" },
+    { "path": "../agent/tsconfig.build.json" }
+  ]
+}
