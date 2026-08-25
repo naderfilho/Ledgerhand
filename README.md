@@ -40,21 +40,34 @@ things verifiable rather than claimed.
 
 ## Quickstart
 
+To look at it, one command and nothing installed but Docker:
+
+```bash
+docker compose -f docker/compose.yml --profile demo up
+```
+
+That builds the application, migrates the schema, seeds ninety days of trading
+and serves it on <http://localhost:3000>. Sign in as `admin@ledgerhand.dev`
+with the password `ledgerhand`. There is one user per role -- `admin`,
+`sales`, `finance`, `stock`, `readonly` -- and the role decides what the
+screens, the API and the agent's tool list contain.
+
+To work on it:
+
 ```bash
 pnpm install
 docker compose -f docker/compose.yml up -d postgres
 cp .env.example .env
 pnpm db:migrate
 pnpm db:seed
+pnpm --filter @ledgerhand/web dev
 ```
 
-That leaves a database with 40 products, 12 customers, 6 suppliers and 90 days
-of trading: invoiced orders, receivables both settled and overdue, purchase
-receipts, daily cash sessions, and a deliberate replenishment backlog.
-
-Then `pnpm --filter @ledgerhand/web dev` and sign in with `admin@ledgerhand.dev` and the
-password from `SEED_PASSWORD`. There is one user per role: `admin`, `sales`,
-`finance`, `stock`, `readonly`.
+Either way the database ends up with 40 products, 12 customers, 6 suppliers and
+90 days of trading: invoiced orders, receivables both settled and overdue,
+purchase receipts, daily cash sessions, a deliberate replenishment backlog, and
+one recorded agent run -- visible under **Audit trail → Agent**, where every
+event links to everything else that run changed.
 
 Run everything the CI runs:
 

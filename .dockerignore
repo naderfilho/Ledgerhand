@@ -1,0 +1,14 @@
+# Keeping the build context small matters more than it looks: every file here
+# is copied to the daemon before the first instruction runs.
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+coverage
+**/*.tsbuildinfo
+.git
+.env
+.env.local
+*.log

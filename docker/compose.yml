@@ -61,5 +61,59 @@ services:
       timeout: 3s
       retries: 10
 
+  # -------------------------------------------------------------------------
+  # The application itself, for someone who wants to see it rather than work
+  # on it:
+  #
+  #     docker compose -f docker/compose.yml --profile demo up
+  #
+  # Then open http://localhost:3000 and sign in with admin@ledgerhand.dev.
+  # Development still runs the app from source against the postgres service
+  # above; the demo profile keeps the two out of each other’s way.
+  # -------------------------------------------------------------------------
+  migrate:
+    profiles: ['demo']
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+      target: tools
+    container_name: ledgerhand-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_ADMIN_URL: postgres://postgres:postgres@postgres:5432/ledgerhand
+      DATABASE_URL: postgres://ledgerhand_app:ledgerhand_app@postgres:5432/ledgerhand
+      SEED_PASSWORD: ${SEED_PASSWORD:-ledgerhand}
+    # Migrating creates the application role and the policies; seeding fills
+    # ninety days of trading by calling the real use cases. Seeding a database
+    # that already has tenants declines politely, so restarting is safe.
+    command: sh -c "pnpm db:migrate && pnpm db:seed"
+    restart: 'no'
+
+  web:
+    profiles: ['demo']
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+      target: runner
+    container_name: ledgerhand-web
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://ledgerhand_app:ledgerhand_app@postgres:5432/ledgerhand
+      DATABASE_AUTH_URL: postgres://ledgerhand_auth:ledgerhand_auth@postgres:5432/ledgerhand
+      # Overridable, and deliberately not a secret worth protecting: this
+      # compose file is a demonstration, not a deployment.
+      AUTH_SECRET: ${AUTH_SECRET:-a-demo-secret-that-is-long-enough-to-be-valid}
+      AUTH_URL: http://localhost:${WEB_PORT:-3000}
+      AUTH_TRUST_HOST: 'true'
+    ports:
+      - '${WEB_PORT:-3000}:3000'
+    restart: unless-stopped
+
 volumes:
   postgres-data:

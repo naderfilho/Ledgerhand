@@ -132,3 +132,25 @@ jobs:
             evals.json
           retention-days: 14
           if-no-files-found: ignore
+
+  demo-image:
+    name: Demo image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The quickstart is the first thing anyone runs. If it stops building, the
+    # repository is broken for a reader before it is broken for a developer.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the image the quickstart uses
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/web.Dockerfile
+          target: runner
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
