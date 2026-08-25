@@ -55,6 +55,12 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Before the type-aware lint and the type-check, not after: they read
+      # the declaration files the workspace packages emit, and a clean
+      # checkout has none.
+      - name: Build
+        run: pnpm build
+
       - name: Check formatting
         run: pnpm format:check
 
@@ -63,9 +69,6 @@ jobs:
 
       - name: Type-check
         run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
 
       - name: Test
         run: pnpm test:coverage
