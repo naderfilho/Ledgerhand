@@ -86,8 +86,8 @@ export function SignInForm(): React.JSX.Element {
           ))}
         </ul>
         <p className="px-2 text-[0.6875rem] text-muted-foreground">
-          Each role sees a different application. That is the point: the agent in phase 4 borrows
-          one of these identities and inherits exactly its permissions.
+          Each role sees a different application. That is the point: the agent borrows one of these
+          identities and inherits exactly its permissions.
         </p>
       </div>
     </div>

@@ -91,7 +91,7 @@ export default async function AuditPage({
     <>
       <PageHeader
         title="Audit trail"
-        description="Every recorded fact, written in the same transaction as the change it describes. Nothing here can be edited or deleted -- the application role has no permission to."
+        description="Every recorded fact, written in the same transaction as the change it describes. Nothing here can be edited or deleted, because the application role has no permission to."
       />
 
       {run === '' ? null : (

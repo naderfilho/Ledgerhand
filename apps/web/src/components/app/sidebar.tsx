@@ -74,7 +74,7 @@ export function Sidebar({
 
       <div className="border-t border-border px-5 py-3">
         <p className="text-[0.6875rem] leading-relaxed text-muted-foreground">
-          Phase 2 of 5 &middot; the agent arrives in phase 4
+          ERP, MCP server, agent and evals &middot; all five phases running
         </p>
       </div>
     </aside>

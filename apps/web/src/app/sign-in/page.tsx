@@ -84,7 +84,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
         </div>
 
         <p className="relative text-xs text-muted-foreground">
-          Open source under MIT &middot; github.com/naderfilho/Ledgerhand
+          PolyForm Noncommercial &middot; github.com/naderfilho/Ledgerhand
         </p>
       </section>
 
