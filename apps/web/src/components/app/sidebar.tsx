@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import type * as React from 'react'
+import { iconFor } from '@/lib/icons'
 import type { NavGroup } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 
@@ -41,7 +42,7 @@ export function Sidebar({
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
-                const Icon = item.icon
+                const Icon = iconFor(item.icon)
                 return (
                   <li key={item.href}>
                     <Link

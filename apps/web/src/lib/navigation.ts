@@ -1,19 +1,5 @@
 import type { Capability } from '@ledgerhand/domain'
-import {
-  Boxes,
-  ClipboardList,
-  Coins,
-  FileText,
-  LayoutDashboard,
-  PackageSearch,
-  Receipt,
-  ScrollText,
-  ShoppingCart,
-  Truck,
-  Users,
-  Wallet,
-  type LucideIcon,
-} from 'lucide-react'
+import type { IconName } from './icons'
 
 /**
  * One definition of the navigation, used by the sidebar and by the command
@@ -24,7 +10,7 @@ import {
 export interface NavItem {
   readonly href: string
   readonly label: string
-  readonly icon: LucideIcon
+  readonly icon: IconName
   readonly capability: Capability
   /** Extra words the command palette should match on. */
   readonly keywords?: readonly string[]
@@ -42,7 +28,7 @@ export const NAVIGATION: readonly NavGroup[] = [
       {
         href: '/',
         label: 'Dashboard',
-        icon: LayoutDashboard,
+        icon: 'LayoutDashboard',
         capability: 'reports:read',
         keywords: ['home', 'summary', 'today'],
       },
@@ -54,14 +40,14 @@ export const NAVIGATION: readonly NavGroup[] = [
       {
         href: '/sales',
         label: 'Sales orders',
-        icon: ShoppingCart,
+        icon: 'ShoppingCart',
         capability: 'sales:read',
         keywords: ['order', 'invoice', 'customer order'],
       },
       {
         href: '/customers',
         label: 'Customers',
-        icon: Users,
+        icon: 'Users',
         capability: 'catalog:read',
         keywords: ['client', 'buyer'],
       },
@@ -73,14 +59,14 @@ export const NAVIGATION: readonly NavGroup[] = [
       {
         href: '/purchasing',
         label: 'Purchase orders',
-        icon: ClipboardList,
+        icon: 'ClipboardList',
         capability: 'purchase:read',
         keywords: ['supplier order', 'receive', 'delivery'],
       },
       {
         href: '/suppliers',
         label: 'Suppliers',
-        icon: Truck,
+        icon: 'Truck',
         capability: 'catalog:read',
         keywords: ['vendor'],
       },
@@ -92,21 +78,21 @@ export const NAVIGATION: readonly NavGroup[] = [
       {
         href: '/stock',
         label: 'Stock position',
-        icon: Boxes,
+        icon: 'Boxes',
         capability: 'stock:read',
         keywords: ['inventory', 'on hand', 'available'],
       },
       {
         href: '/stock/movements',
         label: 'Movements',
-        icon: PackageSearch,
+        icon: 'PackageSearch',
         capability: 'stock:read',
         keywords: ['entry', 'exit', 'adjustment', 'history'],
       },
       {
         href: '/products',
         label: 'Products',
-        icon: FileText,
+        icon: 'FileText',
         capability: 'catalog:read',
         keywords: ['catalogue', 'sku', 'item'],
       },
@@ -118,21 +104,21 @@ export const NAVIGATION: readonly NavGroup[] = [
       {
         href: '/finance/receivables',
         label: 'Receivables',
-        icon: Receipt,
+        icon: 'Receipt',
         capability: 'finance:read',
         keywords: ['owed to us', 'collections', 'overdue'],
       },
       {
         href: '/finance/payables',
         label: 'Payables',
-        icon: Coins,
+        icon: 'Coins',
         capability: 'finance:read',
         keywords: ['owed by us', 'bills', 'suppliers'],
       },
       {
         href: '/finance/cash',
         label: 'Daily cash',
-        icon: Wallet,
+        icon: 'Wallet',
         capability: 'finance:read',
         keywords: ['close the day', 'session', 'till'],
       },
@@ -144,14 +130,14 @@ export const NAVIGATION: readonly NavGroup[] = [
       {
         href: '/reports',
         label: 'Reports',
-        icon: ScrollText,
+        icon: 'ScrollText',
         capability: 'reports:read',
         keywords: ['sales by period', 'cash flow', 'valuation'],
       },
       {
         href: '/audit',
         label: 'Audit trail',
-        icon: ScrollText,
+        icon: 'ScrollText',
         capability: 'audit:read',
         keywords: ['events', 'history', 'who did what'],
       },

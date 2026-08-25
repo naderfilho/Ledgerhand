@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { iconFor } from '@/lib/icons'
 import type { NavGroup } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 
@@ -92,7 +93,7 @@ export function CommandPalette({
                   className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-[0.625rem] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:tracking-widest [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase"
                 >
                   {group.items.map((item) => {
-                    const Icon = item.icon
+                    const Icon = iconFor(item.icon)
                     return (
                       <Command.Item
                         key={item.href}

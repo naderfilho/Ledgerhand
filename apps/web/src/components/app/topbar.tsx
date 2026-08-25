@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { initialsOf } from '@/lib/format'
+import { iconFor } from '@/lib/icons'
 import type { NavGroup } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 import { CommandPalette } from './command-palette'
@@ -142,7 +143,7 @@ export function Topbar({
               </p>
               <ul className="space-y-0.5">
                 {group.items.map((item) => {
-                  const Icon = item.icon
+                  const Icon = iconFor(item.icon)
                   return (
                     <li key={item.href}>
                       <Link
