@@ -22,6 +22,9 @@ import {
  * first is something to tell the model, the second is something to retry.
  */
 
+/** Names the agent run behind a call, for the ERP's audit trail. */
+export const AGENT_RUN_HEADER = 'x-ledgerhand-agent-run'
+
 export interface HttpGatewayOptions {
   /** Base URL of the ERP, e.g. `http://localhost:3000`. */
   readonly baseUrl: string
@@ -56,12 +59,17 @@ export function httpGateway(options: HttpGatewayOptions): UseCaseGateway {
   const doFetch = options.fetch ?? globalThis.fetch
   const timeoutMs = options.timeoutMs ?? 30_000
 
-  const request = async (path: string, body: JsonValue | null): Promise<unknown> => {
+  const request = async (
+    path: string,
+    body: JsonValue | null,
+    agentRunId: string | null = null,
+  ): Promise<unknown> => {
     const response = await doFetch(`${base}/api/erp${path}`, {
       method: body === null ? 'GET' : 'POST',
       headers: {
         authorization: `Bearer ${options.token}`,
         ...(body === null ? {} : { 'content-type': 'application/json' }),
+        ...(agentRunId === null ? {} : { [AGENT_RUN_HEADER]: agentRunId }),
       },
       ...(body === null ? {} : { body: JSON.stringify(body) }),
       signal: AbortSignal.timeout(timeoutMs),
@@ -114,10 +122,11 @@ export function httpGateway(options: HttpGatewayOptions): UseCaseGateway {
 
     call: async (call: CallRequest) => {
       const path = `/tools/${encodeURIComponent(call.name)}`
-      const payload = await request(path, {
-        input: (call.input ?? {}) as JsonValue,
-        idempotencyKey: call.idempotencyKey ?? null,
-      })
+      const payload = await request(
+        path,
+        { input: (call.input ?? {}) as JsonValue, idempotencyKey: call.idempotencyKey ?? null },
+        call.agentRunId ?? null,
+      )
       return unwrap<JsonValue>(payload, path)
     },
 

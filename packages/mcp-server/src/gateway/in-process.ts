@@ -25,7 +25,15 @@ export interface ExecutionScope {
   readonly idempotency: IdempotencyStore
 }
 
-export type ScopeRunner = <T>(handler: (scope: ExecutionScope) => Promise<T>) => Promise<T>
+export interface ScopeOptions {
+  /** Runs this call as the agent, borrowing the same user and role. */
+  readonly agentRunId?: string | null
+}
+
+export type ScopeRunner = <T>(
+  handler: (scope: ExecutionScope) => Promise<T>,
+  options?: ScopeOptions,
+) => Promise<T>
 
 function sha256(canonical: string): string {
   return createHash('sha256').update(canonical, 'utf8').digest('hex')
@@ -52,20 +60,23 @@ export function inProcessGateway(run: ScopeRunner): UseCaseGateway {
       await run(async ({ context }) => await Promise.resolve(summariseForRole(context.role))),
 
     call: async (request: CallRequest): Promise<GatewayOutcome<JsonValue>> =>
-      await run(async (scope) => {
-        const outcome = await runOperation(
-          {
-            name: request.name,
-            input: request.input,
-            idempotencyKey: request.idempotencyKey ?? null,
-          },
-          scope.context,
-          { idempotency: scope.idempotency, hash: sha256 },
-        )
-        return outcome.ok
-          ? { ok: true, value: outcome.value, replayed: outcome.replayed }
-          : { ok: false, error: outcome.error }
-      }),
+      await run(
+        async (scope) => {
+          const outcome = await runOperation(
+            {
+              name: request.name,
+              input: request.input,
+              idempotencyKey: request.idempotencyKey ?? null,
+            },
+            scope.context,
+            { idempotency: scope.idempotency, hash: sha256 },
+          )
+          return outcome.ok
+            ? { ok: true, value: outcome.value, replayed: outcome.replayed }
+            : { ok: false, error: outcome.error }
+        },
+        { agentRunId: request.agentRunId ?? null },
+      ),
 
     preview: async (request) =>
       await run(async (scope) => {

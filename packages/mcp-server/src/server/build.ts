@@ -64,6 +64,17 @@ export interface ErpServerOptions {
   readonly version?: string
 }
 
+/**
+ * The MCP extension point for out-of-band context. An agent puts the id of the
+ * run it is performing here, and the ERP attributes its events to it.
+ */
+export const AGENT_RUN_META_KEY = 'dev.ledgerhand/agent-run-id'
+
+function agentRunIdOf(meta: Record<string, unknown> | undefined): string | null {
+  const value = meta?.[AGENT_RUN_META_KEY]
+  return typeof value === 'string' && value.trim() !== '' ? value : null
+}
+
 function errorResult(error: GatewayError): CallToolResult {
   return {
     isError: true,
@@ -143,6 +154,7 @@ export function createErpServer(options: ErpServerOptions): Server {
     }
 
     const { input, idempotencyKey } = splitArguments(request.params.arguments)
+    const agentRunId = agentRunIdOf(request.params._meta)
 
     if (gate.requiresApproval(summary.risk)) {
       const preview = summary.hasPreview
@@ -164,7 +176,7 @@ export function createErpServer(options: ErpServerOptions): Server {
       }
     }
 
-    const outcome = await gateway.call({ name, input, idempotencyKey })
+    const outcome = await gateway.call({ name, input, idempotencyKey, agentRunId })
     return outcome.ok ? jsonResult(outcome.value, outcome.replayed) : errorResult(outcome.error)
   })
 

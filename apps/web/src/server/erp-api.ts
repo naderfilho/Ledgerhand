@@ -6,6 +6,7 @@ import {
   previewOperation,
   runOperation,
   today,
+  type AgentRunId,
   type JsonValue,
   type Role,
   type TenantId,
@@ -143,6 +144,26 @@ function sha256(canonical: string): string {
   return createHash('sha256').update(canonical, 'utf8').digest('hex')
 }
 
+/**
+ * Names the agent run behind a call. The ERP records it against every event the
+ * call produces; it is an assertion about which of its own runs the caller is
+ * performing, and cannot widen what the token is allowed to do.
+ */
+export const AGENT_RUN_HEADER = 'x-ledgerhand-agent-run'
+
+function actingSession(caller: ApiCaller, request: Request): Session {
+  const runId = request.headers.get(AGENT_RUN_HEADER)
+  if (runId === null || runId.trim() === '') return caller.session
+  return {
+    ...caller.session,
+    actor: {
+      kind: 'agent',
+      userId: caller.session.userId,
+      agentRunId: asId<AgentRunId>(runId),
+    },
+  }
+}
+
 /** Runs one named operation for an authenticated caller, in one transaction. */
 export async function callOperation(
   caller: ApiCaller,
@@ -151,7 +172,7 @@ export async function callOperation(
 ): Promise<Response> {
   const body = await readBody(request)
 
-  const outcome = await withScope(database().db, caller.session, async (scope) => {
+  const outcome = await withScope(database().db, actingSession(caller, request), async (scope) => {
     return await runOperation(
       { name, input: body.input, idempotencyKey: body.idempotencyKey },
       scope.context,

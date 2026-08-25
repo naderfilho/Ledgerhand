@@ -13,29 +13,29 @@ permissions, human confirmation for destructive actions, a complete audit
 trail, and a measured success rate. Everything here exists to make those four
 things verifiable rather than claimed.
 
-> **Status: phases 1 to 3 of 5 complete.** The domain, the database, the web
-> application and the MCP server are running. The agent and the eval suite are
-> next. This README grows with them.
+> **Status: phases 1 to 4 of 5 complete.** The domain, the database, the web
+> application, the MCP server and the agent are running. The eval suite is
+> next. This README grows with it.
 
 ---
 
 ## What works today
 
-| Area                 | State                                                                 |
-| -------------------- | --------------------------------------------------------------------- |
-| Domain model         | 43 use cases across catalogue, stock, sales, purchasing, finance      |
-| Business rules       | Enforced in the domain, not in the UI                                 |
-| Postgres + Drizzle   | Schema, migrations, adapters, gap-free fiscal numbering               |
-| Tenant isolation     | Row level security, attacked from five directions by tests            |
-| Demo data            | 90 days of reproducible trading, generated through the real use cases |
-| Tests                | 290 passing, 96% line coverage on the domain, property-based          |
-| Authentication       | Auth.js v5, five roles, a Postgres role that can only read `users`    |
-| Web UI               | 19 routes, role-filtered, dark and light                              |
-| ERP HTTP API         | The same use cases over HTTP, a bearer token mapped to a real user    |
-| MCP server           | 43 tools, 7 resources, 2 templates, 4 prompts, stdio and HTTP         |
-| Guardrails           | Role-filtered tools, idempotent writes, human approval to destroy     |
-| Agent with approvals | Phase 4                                                               |
-| Eval suite           | Phase 5                                                               |
+| Area                 | State                                                                   |
+| -------------------- | ----------------------------------------------------------------------- |
+| Domain model         | 43 use cases across catalogue, stock, sales, purchasing, finance        |
+| Business rules       | Enforced in the domain, not in the UI                                   |
+| Postgres + Drizzle   | Schema, migrations, adapters, gap-free fiscal numbering                 |
+| Tenant isolation     | Row level security, attacked from five directions by tests              |
+| Demo data            | 90 days of reproducible trading, generated through the real use cases   |
+| Tests                | 310 passing, 96% line coverage on the domain, property-based            |
+| Authentication       | Auth.js v5, five roles, a Postgres role that can only read `users`      |
+| Web UI               | 19 routes, role-filtered, dark and light                                |
+| ERP HTTP API         | The same use cases over HTTP, a bearer token mapped to a real user      |
+| MCP server           | 43 tools, 7 resources, 2 templates, 4 prompts, stdio and HTTP           |
+| Guardrails           | Role-filtered tools, idempotent writes, human approval to destroy       |
+| Agent with approvals | Claude over MCP, five budget limits, elicitation approvals, transcripts |
+| Eval suite           | Phase 5                                                                 |
 
 ## Quickstart
 
@@ -106,18 +106,19 @@ not a promise in a document.
 Each of these is written up in [`docs/adr`](docs/adr) with the alternatives
 that were rejected and why.
 
-| ADR                                                         | Decision                                                     |
-| ----------------------------------------------------------- | ------------------------------------------------------------ |
-| [0001](docs/adr/0001-monorepo-and-package-boundaries.md)    | Six packages, one dependency direction, boundaries linted    |
-| [0002](docs/adr/0002-use-cases-as-data.md)                  | Use cases described as data; every adapter derives from them |
-| [0003](docs/adr/0003-fixed-point-arithmetic.md)             | Scaled `bigint` money and quantities; no floating point      |
-| [0004](docs/adr/0004-tenant-isolation.md)                   | Row level security with a non-owner application role         |
-| [0005](docs/adr/0005-domain-events-as-audit.md)             | Events committed in the same transaction as the change       |
-| [0006](docs/adr/0006-risk-classification-in-the-domain.md)  | `read` / `write` / `destructive` decided by the domain       |
-| [0007](docs/adr/0007-simulated-fiscal-document.md)          | Simulated NF-e with a real, gap-free numbering seam          |
-| [0008](docs/adr/0008-business-dates-and-instants.md)        | A business day is not a timestamp                            |
-| [0009](docs/adr/0009-mcp-server-over-a-gateway.md)          | The MCP server reaches the ERP through a gateway port        |
-| [0010](docs/adr/0010-one-presentation-for-every-adapter.md) | Every use case knows how to present itself as JSON           |
+| ADR                                                          | Decision                                                     |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| [0001](docs/adr/0001-monorepo-and-package-boundaries.md)     | Six packages, one dependency direction, boundaries linted    |
+| [0002](docs/adr/0002-use-cases-as-data.md)                   | Use cases described as data; every adapter derives from them |
+| [0003](docs/adr/0003-fixed-point-arithmetic.md)              | Scaled `bigint` money and quantities; no floating point      |
+| [0004](docs/adr/0004-tenant-isolation.md)                    | Row level security with a non-owner application role         |
+| [0005](docs/adr/0005-domain-events-as-audit.md)              | Events committed in the same transaction as the change       |
+| [0006](docs/adr/0006-risk-classification-in-the-domain.md)   | `read` / `write` / `destructive` decided by the domain       |
+| [0007](docs/adr/0007-simulated-fiscal-document.md)           | Simulated NF-e with a real, gap-free numbering seam          |
+| [0008](docs/adr/0008-business-dates-and-instants.md)         | A business day is not a timestamp                            |
+| [0009](docs/adr/0009-mcp-server-over-a-gateway.md)           | The MCP server reaches the ERP through a gateway port        |
+| [0010](docs/adr/0010-one-presentation-for-every-adapter.md)  | Every use case knows how to present itself as JSON           |
+| [0011](docs/adr/0011-the-agent-is-a-client-with-a-budget.md) | The agent is an MCP client with a budget                     |
 
 ## Business rules the domain refuses to break
 
@@ -206,12 +207,53 @@ The tokens live in the environment, which is honest for a demo and not what a
 deployment should do: real tokens would be stored hashed, per user, with an
 expiry and a revocation list.
 
+## The agent
+
+```bash
+pnpm --filter @ledgerhand/agent dev "which products are below minimum, and what should we order?"
+```
+
+The agent is an MCP client and nothing else: no database driver, no domain
+import, no permission list of its own. What it may do is whatever role the ERP
+resolves for the user the run acts for, so `MCP_USER_EMAIL=readonly@ledgerhand.dev`
+produces an agent that genuinely cannot write.
+
+Four guardrails, all of them mechanisms rather than instructions:
+
+| Guardrail   | How it is enforced                                                                     |
+| ----------- | -------------------------------------------------------------------------------------- |
+| Permissions | The ERP filters `tools/list` by role; the agent never sees what it may not call        |
+| Budget      | Tool calls, input tokens, output tokens, dollars and wall clock, checked between steps |
+| Approval    | The ERP stops a destructive tool and asks over MCP elicitation; unattended runs refuse |
+| Audit       | Every call carries the run id, and the ERP stamps it on each event it records          |
+
+A run ends with a transcript: what was asked, what came back, what was
+approved, what it cost. It records requests, not effects -- what actually
+changed is in the ERP's own event log, joined by the run id, because the
+transcript is written by the party whose self-report should not be the last
+word.
+
+What a finished run prints, before the answer itself:
+
+```
+run <uuid> -- completed | budget-exhausted | refused-by-model | failed
+task: <the sentence it was given>
+<n> exchanges, <n> tool calls, <n> refused
+approvals: <n> of <n> granted
+spend: $<usd>, <n> in / <n> out, <n>s
+```
+
+Running the agent needs `ANTHROPIC_API_KEY`; everything else in this repository
+runs without one.
+
 ## Testing
 
 ```
 packages/domain      249 tests, 96.8% lines, 95.8% functions, 86.8% branches
 packages/mcp-server   25 tests, driven by a real MCP client over an in-memory transport
-packages/db          integration tests against Postgres 17: RLS, persistence, idempotency
+packages/agent        18 tests, a scripted model against the real MCP server
+packages/db          integration tests against Postgres 17: RLS, persistence,
+                     idempotency, agent attribution
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves

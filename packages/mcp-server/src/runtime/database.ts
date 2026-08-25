@@ -1,6 +1,6 @@
 import { createAuthLookup, createDatabase, withScope, type Session } from '@ledgerhand/db'
-import { asId, type TenantId, type UserId } from '@ledgerhand/domain'
-import { inProcessGateway, type ExecutionScope } from '../gateway/in-process.js'
+import { asId, type AgentRunId, type TenantId, type UserId } from '@ledgerhand/domain'
+import { inProcessGateway, type ExecutionScope, type ScopeOptions } from '../gateway/in-process.js'
 import type { UseCaseGateway } from '../gateway/gateway.js'
 
 /**
@@ -44,15 +44,33 @@ export async function createInProcessGateway(config: InProcessConfig): Promise<R
     tenantId: asId<TenantId>(account.tenantId),
     userId: asId<UserId>(account.userId),
     role: account.role,
-    // Phase 4 replaces this with an agent actor carrying its run id, so the
-    // audit trail can name both the agent and the person it acted for.
+    // The default actor. A call that names an agent run swaps it below.
     actor: { kind: 'user', userId: asId<UserId>(account.userId) },
     timeZone: account.timeZone,
     currency: account.currency,
   }
 
-  const run = async <T>(handler: (scope: ExecutionScope) => Promise<T>): Promise<T> =>
-    await withScope(handle.db, session, handler)
+  /**
+   * The agent borrows the identity and the role of the user it acts for; only
+   * the actor changes, so the audit trail can name both the run and the person
+   * accountable for it.
+   */
+  const sessionFor = (agentRunId: string | null | undefined): Session =>
+    agentRunId === null || agentRunId === undefined
+      ? session
+      : {
+          ...session,
+          actor: {
+            kind: 'agent',
+            userId: session.userId,
+            agentRunId: asId<AgentRunId>(agentRunId),
+          },
+        }
+
+  const run = async <T>(
+    handler: (scope: ExecutionScope) => Promise<T>,
+    options?: ScopeOptions,
+  ): Promise<T> => await withScope(handle.db, sessionFor(options?.agentRunId), handler)
 
   return {
     gateway: inProcessGateway(run),

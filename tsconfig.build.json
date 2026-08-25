@@ -9,6 +9,9 @@
     },
     {
       "path": "packages/mcp-server/tsconfig.build.json"
+    },
+    {
+      "path": "packages/agent/tsconfig.build.json"
     }
   ]
 }

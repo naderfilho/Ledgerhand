@@ -21,6 +21,9 @@
     },
     {
       "path": "packages/mcp-server"
+    },
+    {
+      "path": "packages/agent"
     }
   ]
 }

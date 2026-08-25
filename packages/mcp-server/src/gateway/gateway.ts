@@ -50,6 +50,15 @@ export interface CallRequest {
   readonly name: string
   readonly input: unknown
   readonly idempotencyKey?: string | null
+  /**
+   * Set when an agent is calling. The ERP stamps it on every event the call
+   * records, so "everything this run changed" is one query on the audit trail.
+   *
+   * It is an assertion by the caller, not a credential: it says which of its
+   * own runs an authenticated identity is acting for. It cannot widen what
+   * that identity may do, and a caller can only ever mislabel itself.
+   */
+  readonly agentRunId?: string | null
 }
 
 export interface UseCaseGateway {
