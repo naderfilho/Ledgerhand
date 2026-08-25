@@ -1,5 +1,6 @@
 import type { EventRecorder } from '../events/domain-event.js'
 import type {
+  AuditRepository,
   CashRepository,
   CustomerRepository,
   FinanceRepository,
@@ -34,6 +35,7 @@ export interface UnitOfWork {
   readonly cash: CashRepository
   readonly fiscal: FiscalRepository
   readonly reporting: ReportingRepository
+  readonly audit: AuditRepository
   readonly sequences: NumberSequence
   readonly ids: IdGenerator
   readonly events: EventRecorder

@@ -168,3 +168,32 @@ export const getCurrentContext = defineUseCase({
     })
   },
 })
+
+export const listDomainEvents = defineUseCase({
+  name: 'list_domain_events',
+  title: 'List domain events',
+  summary:
+    'Returns the audit trail: every recorded fact, newest first, with the actor behind it. Filter by aggregate to follow one order through its whole life, or by agentRunId to see everything a single agent run changed.',
+  capability: 'audit:read',
+  risk: 'read',
+  inputSchema: z.object({
+    types: z.array(z.string().max(64)).max(20).optional(),
+    aggregateType: z.string().max(32).optional(),
+    aggregateId: z.uuid().optional(),
+    agentRunId: z.uuid().optional(),
+    actorKind: z.enum(['user', 'agent', 'system']).optional(),
+    limit: z.number().int().min(1).max(200).default(100),
+    offset: z.number().int().min(0).default(0),
+  }),
+  execute: async (input, context) =>
+    ok(
+      await context.uow.audit.listEvents({
+        ...(input.types === undefined ? {} : { types: input.types }),
+        ...(input.aggregateType === undefined ? {} : { aggregateType: input.aggregateType }),
+        ...(input.aggregateId === undefined ? {} : { aggregateId: input.aggregateId }),
+        ...(input.agentRunId === undefined ? {} : { agentRunId: input.agentRunId }),
+        ...(input.actorKind === undefined ? {} : { actorKind: input.actorKind }),
+        page: { limit: input.limit, offset: input.offset },
+      }),
+    ),
+})

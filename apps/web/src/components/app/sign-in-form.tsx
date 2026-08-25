@@ -1,0 +1,95 @@
+'use client'
+
+import { AlertCircle, ArrowRight } from 'lucide-react'
+import * as React from 'react'
+import { useActionState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Field, Input } from '@/components/ui/field'
+import { signInAction, type SignInState } from '@/server/actions/session'
+
+const DEMO_ACCOUNTS = [
+  { role: 'admin', email: 'admin@ledgerhand.dev', note: 'everything' },
+  { role: 'sales', email: 'sales@ledgerhand.dev', note: 'orders, no money' },
+  { role: 'finance', email: 'finance@ledgerhand.dev', note: 'money, no warehouse' },
+  { role: 'stock', email: 'stock@ledgerhand.dev', note: 'warehouse and purchasing' },
+  { role: 'readonly', email: 'readonly@ledgerhand.dev', note: 'looks, touches nothing' },
+] as const
+
+export function SignInForm(): React.JSX.Element {
+  const [state, formAction, pending] = useActionState<SignInState, FormData>(signInAction, {})
+  const [email, setEmail] = React.useState('admin@ledgerhand.dev')
+
+  return (
+    <div className="space-y-6">
+      <form action={formAction} className="space-y-4">
+        <Field label="E-mail" htmlFor="email" required>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="username"
+            required
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value)
+            }}
+            aria-invalid={state.error !== undefined}
+          />
+        </Field>
+
+        <Field label="Password" htmlFor="password" required>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            defaultValue="ledgerhand"
+            aria-invalid={state.error !== undefined}
+          />
+        </Field>
+
+        {state.error !== undefined ? (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-md border border-danger/30 bg-danger-subtle px-3 py-2 text-xs text-danger-foreground"
+          >
+            <AlertCircle className="mt-px size-3.5 shrink-0" />
+            {state.error}
+          </p>
+        ) : null}
+
+        <Button type="submit" variant="primary" size="lg" className="w-full" loading={pending}>
+          Sign in
+          {pending ? null : <ArrowRight className="size-4" />}
+        </Button>
+      </form>
+
+      <div className="space-y-2 rounded-lg border border-border bg-surface-sunken p-3">
+        <p className="text-[0.6875rem] font-medium tracking-wide text-muted-foreground uppercase">
+          Demo accounts &middot; password <span className="font-mono">ledgerhand</span>
+        </p>
+        <ul className="grid gap-1">
+          {DEMO_ACCOUNTS.map((account) => (
+            <li key={account.email}>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail(account.email)
+                }}
+                className="flex w-full items-center justify-between gap-3 rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-accent"
+              >
+                <span className="font-medium capitalize">{account.role}</span>
+                <span className="truncate text-muted-foreground">{account.note}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="px-2 text-[0.6875rem] text-muted-foreground">
+          Each role sees a different application. That is the point: the agent in phase 4 borrows
+          one of these identities and inherits exactly its permissions.
+        </p>
+      </div>
+    </div>
+  )
+}

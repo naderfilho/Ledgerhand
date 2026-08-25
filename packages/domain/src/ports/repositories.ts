@@ -199,3 +199,35 @@ export interface ReportingRepository {
     readonly to: BusinessDate
   }): Promise<readonly CashFlowRow[]>
 }
+
+/**
+ * The audit trail. Read-only by construction: `domain_events` is append-only
+ * and the application role has no UPDATE or DELETE on it, so there is nothing
+ * to expose but a query.
+ */
+export interface PersistedEvent {
+  readonly id: string
+  readonly type: string
+  readonly aggregateType: string
+  readonly aggregateId: string
+  readonly payload: Readonly<Record<string, unknown>>
+  readonly actorKind: 'user' | 'agent' | 'system'
+  readonly actorId: string | null
+  readonly agentRunId: string | null
+  readonly occurredAt: Date
+}
+
+export interface EventFilter {
+  readonly types?: readonly string[]
+  readonly aggregateType?: string
+  readonly aggregateId?: string
+  readonly agentRunId?: string
+  readonly actorKind?: 'user' | 'agent' | 'system'
+  readonly page?: Page
+}
+
+export interface AuditRepository {
+  listEvents(filter: EventFilter): Promise<Paginated<PersistedEvent>>
+  /** Distinct actors, for the filter control on the audit screen. */
+  countByActorKind(): Promise<Readonly<Record<string, number>>>
+}

@@ -74,6 +74,7 @@ export const USE_CASES = {
   report_stock_position: reporting.reportStockPosition,
   report_overdue_titles: reporting.reportOverdueTitles,
   get_current_context: reporting.getCurrentContext,
+  list_domain_events: reporting.listDomainEvents,
 } as const
 
 export type UseCaseName = keyof typeof USE_CASES

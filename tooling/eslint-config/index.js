@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
 /**
@@ -38,6 +39,14 @@ export const strictTypeSafety = {
   '@typescript-eslint/return-await': ['error', 'always'],
   eqeqeq: ['error', 'always', { null: 'ignore' }],
   'no-console': ['error', { allow: ['warn', 'error'] }],
+}
+
+/**
+ * Determinism, scoped to the packages. Reading the wall clock at the edge of an
+ * adapter is correct behaviour; doing it inside a use case is not, which is why
+ * the domain has a Clock port in the first place.
+ */
+export const determinism = {
   'no-restricted-syntax': [
     'error',
     {
@@ -134,7 +143,23 @@ export default tseslint.config(
     },
     rules: strictTypeSafety,
   },
+  {
+    files: ['packages/**/*.ts'],
+    rules: determinism,
+  },
   ...architectureBoundaries,
+  {
+    // React components: the hooks rules catch a class of bug no type system
+    // can, and a stale closure in a form that writes to the ledger is not a
+    // cosmetic problem.
+    files: ['**/*.tsx'],
+    plugins: { 'react-hooks': reactHooks },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      // Server Components legitimately return promises.
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
   {
     // Configuration written in JavaScript is not part of the typed program;
     // running type-aware rules over it only produces noise about the shape of

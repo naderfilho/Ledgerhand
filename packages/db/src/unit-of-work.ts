@@ -13,6 +13,7 @@ import {
 import { sql } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { Database } from './client.js'
+import { SqlAudit } from './adapters/audit.js'
 import { SqlCustomers, SqlProducts, SqlSuppliers } from './adapters/catalog.js'
 import { SqlCash, SqlFinance, SqlFiscal } from './adapters/finance.js'
 import { SqlPurchaseOrders } from './adapters/purchasing.js'
@@ -75,6 +76,7 @@ export function buildUnitOfWork(
     cash: new SqlCash(tx, session.tenantId),
     fiscal: new SqlFiscal(tx, session.tenantId),
     reporting: new SqlReporting(tx, session.tenantId),
+    audit: new SqlAudit(tx, session.tenantId),
     sequences: new SqlSequences(tx, session.tenantId),
     ids,
     events,

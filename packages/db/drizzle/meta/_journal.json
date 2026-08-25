@@ -15,6 +15,13 @@
       "when": 1787636731467,
       "tag": "0001_row_level_security",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787670501649,
+      "tag": "0002_auth_lookup_role",
+      "breakpoints": true
     }
   ]
 }

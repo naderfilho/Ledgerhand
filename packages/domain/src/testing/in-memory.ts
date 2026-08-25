@@ -39,6 +39,7 @@ import {
   type StockMovement,
 } from '../model/stock.js'
 import type {
+  AuditRepository,
   CashRepository,
   CashFlowRow,
   CustomerRepository,
@@ -51,6 +52,8 @@ import type {
   ProductRepository,
   PurchaseOrderFilter,
   PurchaseOrderRepository,
+  EventFilter,
+  PersistedEvent,
   ReportingRepository,
   SalesByPeriodRow,
   SalesOrderFilter,
@@ -148,6 +151,12 @@ export class InMemoryDatabase {
   readonly fiscalDocuments = new Map<FiscalDocumentId, FiscalDocument>()
   /** Kept on the database so numbering survives a change of clock or role. */
   readonly sequenceCounters = new Map<string, number>()
+  /**
+   * Events as they would look once persisted. The in-memory recorder collects
+   * drafts for assertions; a test that needs to read the audit trail back can
+   * push finished events here.
+   */
+  readonly persistedEvents: PersistedEvent[] = []
 }
 
 class InMemoryProducts implements ProductRepository {
@@ -493,6 +502,34 @@ class InMemoryFiscal implements FiscalRepository {
   }
 }
 
+class InMemoryAudit implements AuditRepository {
+  constructor(private readonly db: InMemoryDatabase) {}
+
+  async listEvents(filter: EventFilter): Promise<Paginated<PersistedEvent>> {
+    const rows = this.db.persistedEvents
+      .filter((event) => filter.types === undefined || filter.types.includes(event.type))
+      .filter(
+        (event) =>
+          filter.aggregateType === undefined || event.aggregateType === filter.aggregateType,
+      )
+      .filter(
+        (event) => filter.aggregateId === undefined || event.aggregateId === filter.aggregateId,
+      )
+      .filter((event) => filter.agentRunId === undefined || event.agentRunId === filter.agentRunId)
+      .filter((event) => filter.actorKind === undefined || event.actorKind === filter.actorKind)
+      .sort((a, b) => b.occurredAt.getTime() - a.occurredAt.getTime())
+    return await Promise.resolve(paginate(rows, filter.page))
+  }
+
+  async countByActorKind(): Promise<Readonly<Record<string, number>>> {
+    const counts: Record<string, number> = {}
+    for (const event of this.db.persistedEvents) {
+      counts[event.actorKind] = (counts[event.actorKind] ?? 0) + 1
+    }
+    return await Promise.resolve(counts)
+  }
+}
+
 class InMemoryReporting implements ReportingRepository {
   constructor(private readonly db: InMemoryDatabase) {}
 
@@ -605,6 +642,7 @@ export function createTestHarness(options: TestContextOptions = {}): TestHarness
     cash: new InMemoryCash(db),
     fiscal: new InMemoryFiscal(db),
     reporting: new InMemoryReporting(db),
+    audit: new InMemoryAudit(db),
     sequences: new InMemorySequences(db.sequenceCounters),
     ids,
     events,

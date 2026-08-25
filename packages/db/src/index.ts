@@ -1,3 +1,5 @@
 export * from './client.js'
 export * from './unit-of-work.js'
+export * from './password.js'
+export * from './auth-lookup.js'
 export * as schema from './schema/index.js'
