@@ -155,18 +155,31 @@ export const reportOverdueTitles = defineUseCase({
     const totalOutstanding = (titles: readonly Title[]): Money =>
       sumMoney(titles.map(outstandingAmount))
 
+    // Both sides arrive as ids. Two batched lookups name them, so the caller
+    // never has to read the customer and supplier tables to render a report.
+    const [customers, suppliers] = await Promise.all([
+      context.uow.customers.findManyByIds(receivables.rows.map((title) => title.customerId)),
+      context.uow.suppliers.findManyByIds(payables.rows.map((title) => title.supplierId)),
+    ])
+
     return ok({
       asOf,
-      receivables: receivables.rows,
-      payables: payables.rows,
+      receivables: receivables.rows.map((title) => ({
+        title,
+        partyName: customers.get(title.customerId)?.name ?? null,
+      })),
+      payables: payables.rows.map((title) => ({
+        title,
+        partyName: suppliers.get(title.supplierId)?.name ?? null,
+      })),
       totalReceivable: totalOutstanding(receivables.rows),
       totalPayable: totalOutstanding(payables.rows),
     })
   },
   present: ({ asOf, receivables, payables, totalReceivable, totalPayable }) => ({
     asOf,
-    receivables: receivables.map((title) => presentTitle(title, null, asOf)),
-    payables: payables.map((title) => presentTitle(title, null, asOf)),
+    receivables: receivables.map(({ title, partyName }) => presentTitle(title, partyName, asOf)),
+    payables: payables.map(({ title, partyName }) => presentTitle(title, partyName, asOf)),
     totalReceivable: formatMoney(totalReceivable),
     totalPayable: formatMoney(totalPayable),
   }),

@@ -381,14 +381,32 @@ export const listStockMovements = defineUseCase({
     limit: z.number().int().min(1).max(200).default(50),
     offset: z.number().int().min(0).default(0),
   }),
-  execute: async (input, context) =>
-    ok(
-      await context.uow.stock.listMovements({
-        ...(input.productId === undefined ? {} : { productId: asId<ProductId>(input.productId) }),
-        ...(input.from === undefined ? {} : { from: input.from }),
-        ...(input.to === undefined ? {} : { to: input.to }),
-        page: { limit: input.limit, offset: input.offset },
+  execute: async (input, context) => {
+    const page = await context.uow.stock.listMovements({
+      ...(input.productId === undefined ? {} : { productId: asId<ProductId>(input.productId) }),
+      ...(input.from === undefined ? {} : { from: input.from }),
+      ...(input.to === undefined ? {} : { to: input.to }),
+      page: { limit: input.limit, offset: input.offset },
+    })
+    const products = await context.uow.products.findManyByIds(
+      page.rows.map((movement) => movement.productId),
+    )
+    return ok({
+      rows: page.rows.map((movement) => {
+        const product = products.get(movement.productId)
+        return {
+          movement,
+          sku: product?.sku ?? null,
+          productName: product?.name ?? null,
+        }
       }),
-    ),
-  present: (page) => presentPage(page, presentMovement),
+      total: page.total,
+    })
+  },
+  present: (page) =>
+    presentPage(page, ({ movement, sku, productName }) => ({
+      ...presentMovement(movement),
+      sku,
+      productName,
+    })),
 })

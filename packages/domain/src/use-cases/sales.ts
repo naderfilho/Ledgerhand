@@ -599,19 +599,29 @@ export const listSalesOrders = defineUseCase({
     limit: z.number().int().min(1).max(200).default(50),
     offset: z.number().int().min(0).default(0),
   }),
-  execute: async (input, context) =>
-    ok(
-      await context.uow.salesOrders.list({
-        ...(input.status === undefined ? {} : { status: input.status }),
-        ...(input.customerId === undefined
-          ? {}
-          : { customerId: asId<CustomerId>(input.customerId) }),
-        ...(input.from === undefined ? {} : { from: input.from }),
-        ...(input.to === undefined ? {} : { to: input.to }),
-        page: { limit: input.limit, offset: input.offset },
-      }),
-    ),
-  present: (page) => presentPage(page, (order) => presentSalesOrder(order)),
+  execute: async (input, context) => {
+    const page = await context.uow.salesOrders.list({
+      ...(input.status === undefined ? {} : { status: input.status }),
+      ...(input.customerId === undefined ? {} : { customerId: asId<CustomerId>(input.customerId) }),
+      ...(input.from === undefined ? {} : { from: input.from }),
+      ...(input.to === undefined ? {} : { to: input.to }),
+      page: { limit: input.limit, offset: input.offset },
+    })
+    // One batched lookup over the ids on this page, rather than a screen
+    // fetching the customer table to print a column.
+    const customers = await context.uow.customers.findManyByIds(
+      page.rows.map((order) => order.customerId),
+    )
+    return ok({
+      rows: page.rows.map((order) => ({
+        order,
+        customerName: customers.get(order.customerId)?.name ?? null,
+      })),
+      total: page.total,
+    })
+  },
+  present: (page) =>
+    presentPage(page, ({ order, customerName }) => presentSalesOrder(order, customerName ?? '')),
 })
 
 export const getSalesOrder = defineUseCase({

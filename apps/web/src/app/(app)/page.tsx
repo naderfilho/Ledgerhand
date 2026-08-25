@@ -7,7 +7,6 @@ import {
   USE_CASES,
   ZERO_MONEY,
   type ExecutionContext,
-  type Result,
 } from '@ledgerhand/domain'
 import {
   AlertTriangle,
@@ -31,10 +30,6 @@ import { can, query, requireSession } from '@/server/context'
 
 export const dynamic = 'force-dynamic'
 
-function unwrapOr<T>(result: Result<T, unknown>, fallback: T): T {
-  return result.ok ? result.value : fallback
-}
-
 export default async function DashboardPage(): Promise<React.JSX.Element> {
   const session = await requireSession()
 
@@ -56,15 +51,6 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         context,
       ),
     ])
-
-    const customers = unwrapOr(
-      await USE_CASES.list_customers.execute(
-        { activeOnly: true, page: { limit: 200, offset: 0 } },
-        context,
-      ),
-      { rows: [], total: 0 },
-    )
-    const customerNames = new Map(customers.rows.map((customer) => [customer.id, customer.name]))
 
     const cashValue = cash.ok ? cash.value : null
     const overdueValue = overdue.ok ? overdue.value : null
@@ -93,10 +79,10 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
               count: overdueValue.receivables.length,
               payableTotal: formatMoney(overdueValue.totalPayable),
               payableCount: overdueValue.payables.length,
-              worst: overdueValue.receivables.slice(0, 5).map((title) => ({
+              worst: overdueValue.receivables.slice(0, 5).map(({ title, partyName }) => ({
                 id: title.id,
                 description: title.description,
-                customer: customerNames.get(title.customerId) ?? 'Unknown customer',
+                customer: partyName ?? 'Unknown customer',
                 outstanding: formatMoney(outstandingAmount(title)),
                 dueDate: title.dueDate,
               })),
@@ -111,7 +97,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
       })),
       alertCount: alertRows.length,
       pendingCount: pending.total,
-      pendingValue: formatMoney(sumMoney(pending.rows.map((order) => order.total))),
+      pendingValue: formatMoney(sumMoney(pending.rows.map(({ order }) => order.total))),
       trend: trendRows.map((row) => ({ period: row.period, net: formatMoney(row.net) })),
       revenue30: formatMoney(sumMoney(trendRows.map((row) => row.net))),
     }

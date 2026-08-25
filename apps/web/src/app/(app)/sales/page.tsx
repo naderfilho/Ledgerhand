@@ -35,16 +35,10 @@ export default async function SalesPage({
   const status = parseStatus(params['status'])
 
   const data = await query(async (context) => {
-    const [listed, customers] = await Promise.all([
-      USE_CASES.list_sales_orders.execute(
-        { ...(status === null ? {} : { status: [status] }), limit: 100, offset: 0 },
-        context,
-      ),
-      USE_CASES.list_customers.execute(
-        { activeOnly: false, page: { limit: 500, offset: 0 } },
-        context,
-      ),
-    ])
+    const listed = await USE_CASES.list_sales_orders.execute(
+      { ...(status === null ? {} : { status: [status] }), limit: 100, offset: 0 },
+      context,
+    )
 
     const counts = await Promise.all(
       STATUSES.map(async (candidate) => {
@@ -58,16 +52,12 @@ export default async function SalesPage({
 
     if (!listed.ok) return { rows: [], total: 0, value: '0.00', counts: Object.fromEntries(counts) }
 
-    const names = new Map(
-      (customers.ok ? customers.value.rows : []).map((customer) => [customer.id, customer.name]),
-    )
-
     return {
-      rows: listed.value.rows.map((order) =>
-        presentSalesOrder(order, names.get(order.customerId) ?? 'Unknown customer'),
+      rows: listed.value.rows.map(({ order, customerName }) =>
+        presentSalesOrder(order, customerName ?? 'Unknown customer'),
       ),
       total: listed.value.total,
-      value: formatMoney(sumMoney(listed.value.rows.map((order) => order.total))),
+      value: formatMoney(sumMoney(listed.value.rows.map(({ order }) => order.total))),
       counts: Object.fromEntries(counts) as Record<Status, number>,
     }
   })

@@ -58,7 +58,9 @@ describe('list_sales_orders', () => {
       ),
     )
     expect(confirmed.rows).toHaveLength(1)
-    expect(confirmed.rows[0]?.id).toBe(first.id)
+    expect(confirmed.rows[0]?.order.id).toBe(first.id)
+    // The list resolves the customer with the orders, in one query.
+    expect(confirmed.rows[0]?.customerName).not.toBeNull()
 
     const drafts = unwrap(
       await USE_CASES.list_sales_orders.execute(

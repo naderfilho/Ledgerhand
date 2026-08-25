@@ -29,29 +29,19 @@ export default async function PurchasingPage({
   const status = (STATUSES as readonly string[]).includes(raw) ? (raw as Status) : null
 
   const data = await query(async (context) => {
-    const [listed, suppliers] = await Promise.all([
-      USE_CASES.list_purchase_orders.execute(
-        { ...(status === null ? {} : { status: [status] }), limit: 100, offset: 0 },
-        context,
-      ),
-      USE_CASES.list_suppliers.execute(
-        { activeOnly: false, page: { limit: 200, offset: 0 } },
-        context,
-      ),
-    ])
+    const listed = await USE_CASES.list_purchase_orders.execute(
+      { ...(status === null ? {} : { status: [status] }), limit: 100, offset: 0 },
+      context,
+    )
 
     if (!listed.ok) return { rows: [], total: 0, value: '0.00' }
 
-    const names = new Map(
-      (suppliers.ok ? suppliers.value.rows : []).map((supplier) => [supplier.id, supplier.name]),
-    )
-
     return {
-      rows: listed.value.rows.map((order) =>
-        presentPurchaseOrder(order, names.get(order.supplierId) ?? 'Unknown supplier'),
+      rows: listed.value.rows.map(({ order, supplierName }) =>
+        presentPurchaseOrder(order, supplierName ?? 'Unknown supplier'),
       ),
       total: listed.value.total,
-      value: formatMoney(sumMoney(listed.value.rows.map((order) => order.total))),
+      value: formatMoney(sumMoney(listed.value.rows.map(({ order }) => order.total))),
     }
   })
 

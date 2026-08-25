@@ -362,17 +362,25 @@ export const listPurchaseOrders = defineUseCase({
     limit: z.number().int().min(1).max(200).default(50),
     offset: z.number().int().min(0).default(0),
   }),
-  execute: async (input, context) =>
-    ok(
-      await context.uow.purchaseOrders.list({
-        ...(input.status === undefined ? {} : { status: input.status }),
-        ...(input.supplierId === undefined
-          ? {}
-          : { supplierId: asId<SupplierId>(input.supplierId) }),
-        page: { limit: input.limit, offset: input.offset },
-      }),
-    ),
-  present: (page) => presentPage(page, (order) => presentPurchaseOrder(order)),
+  execute: async (input, context) => {
+    const page = await context.uow.purchaseOrders.list({
+      ...(input.status === undefined ? {} : { status: input.status }),
+      ...(input.supplierId === undefined ? {} : { supplierId: asId<SupplierId>(input.supplierId) }),
+      page: { limit: input.limit, offset: input.offset },
+    })
+    const suppliers = await context.uow.suppliers.findManyByIds(
+      page.rows.map((order) => order.supplierId),
+    )
+    return ok({
+      rows: page.rows.map((order) => ({
+        order,
+        supplierName: suppliers.get(order.supplierId)?.name ?? null,
+      })),
+      total: page.total,
+    })
+  },
+  present: (page) =>
+    presentPage(page, ({ order, supplierName }) => presentPurchaseOrder(order, supplierName ?? '')),
 })
 
 export const getPurchaseOrder = defineUseCase({

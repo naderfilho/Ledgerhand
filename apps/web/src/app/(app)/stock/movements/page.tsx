@@ -43,22 +43,13 @@ export default async function MovementsPage({
     const listed = await USE_CASES.list_stock_movements.execute({ limit: 200, offset: 0 }, context)
     if (!listed.ok) return []
 
-    const products = await USE_CASES.list_products.execute(
-      { activeOnly: false, page: { limit: 500, offset: 0 } },
-      context,
-    )
-    const names = new Map(
-      (products.ok ? products.value.rows : []).map((product) => [product.id, product]),
-    )
-
     return listed.value.rows
-      .filter((movement) => kind === '' || movement.kind === kind)
-      .map((movement) => {
-        const product = names.get(movement.productId)
+      .filter(({ movement }) => kind === '' || movement.kind === kind)
+      .map(({ movement, sku, productName }) => {
         return {
           id: movement.id,
-          sku: product?.sku ?? '—',
-          name: product?.name ?? 'Unknown product',
+          sku: sku ?? '—',
+          name: productName ?? 'Unknown product',
           kind: movement.kind,
           reason: movement.reason,
           quantity: formatQuantity(movement.quantity),
