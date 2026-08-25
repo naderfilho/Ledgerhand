@@ -63,12 +63,15 @@ export interface PartyFilter {
 
 export interface CustomerRepository {
   findById(id: CustomerId): Promise<Customer | null>
+  /** Resolves a known set in one query, for screens that show ids and need names. */
+  findManyByIds(ids: readonly CustomerId[]): Promise<ReadonlyMap<CustomerId, Customer>>
   list(filter: PartyFilter): Promise<Paginated<Customer>>
   save(customer: Customer): Promise<void>
 }
 
 export interface SupplierRepository {
   findById(id: SupplierId): Promise<Supplier | null>
+  findManyByIds(ids: readonly SupplierId[]): Promise<ReadonlyMap<SupplierId, Supplier>>
   list(filter: PartyFilter): Promise<Paginated<Supplier>>
   save(supplier: Supplier): Promise<void>
 }

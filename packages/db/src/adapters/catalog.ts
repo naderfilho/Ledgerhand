@@ -166,6 +166,15 @@ export class SqlCustomers implements CustomerRepository {
     private readonly tenantId: TenantId,
   ) {}
 
+  async findManyByIds(ids: readonly CustomerId[]): Promise<Map<CustomerId, Customer>> {
+    if (ids.length === 0) return new Map()
+    const rows = await this.tx
+      .select()
+      .from(customers)
+      .where(and(eq(customers.tenantId, this.tenantId), inArray(customers.id, [...ids])))
+    return new Map(rows.map((row) => [asId<CustomerId>(row.id), toCustomer(row)]))
+  }
+
   async findById(id: CustomerId): Promise<Customer | null> {
     const [row] = await this.tx
       .select()
@@ -232,6 +241,15 @@ export class SqlSuppliers implements SupplierRepository {
     private readonly tx: Transaction,
     private readonly tenantId: TenantId,
   ) {}
+
+  async findManyByIds(ids: readonly SupplierId[]): Promise<Map<SupplierId, Supplier>> {
+    if (ids.length === 0) return new Map()
+    const rows = await this.tx
+      .select()
+      .from(suppliers)
+      .where(and(eq(suppliers.tenantId, this.tenantId), inArray(suppliers.id, [...ids])))
+    return new Map(rows.map((row) => [asId<SupplierId>(row.id), toSupplier(row)]))
+  }
 
   async findById(id: SupplierId): Promise<Supplier | null> {
     const [row] = await this.tx

@@ -453,7 +453,7 @@ async function settleWhatIsDue(context: ExecutionContext, day: BusinessDate): Pr
     'listing receivables',
   )
 
-  for (const title of receivables.rows) {
+  for (const { title } of receivables.rows) {
     if (title.status === 'settled' || title.status === 'cancelled') continue
     // One in six customers pays late; those become the overdue list.
     if (random() < 0.17) continue
@@ -477,7 +477,7 @@ async function settleWhatIsDue(context: ExecutionContext, day: BusinessDate): Pr
     'listing payables',
   )
 
-  for (const title of payables.rows) {
+  for (const { title } of payables.rows) {
     if (title.status === 'settled' || title.status === 'cancelled') continue
     if (random() < 0.08) continue
     attempt(

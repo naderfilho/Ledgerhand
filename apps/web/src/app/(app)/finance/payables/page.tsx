@@ -21,21 +21,15 @@ export default async function PayablesPage({
     const today = await USE_CASES.get_current_context.execute({}, context)
     const businessDate = today.ok ? today.value.today : ''
 
-    const [all, suppliers] = await Promise.all([
-      USE_CASES.list_payables.execute(
-        {
-          ...(filter === 'all' ? {} : { status: ['open', 'partially_settled'] as const }),
-          overdueOnly: false,
-          limit: 200,
-          offset: 0,
-        },
-        context,
-      ),
-      USE_CASES.list_suppliers.execute(
-        { activeOnly: false, page: { limit: 500, offset: 0 } },
-        context,
-      ),
-    ])
+    const all = await USE_CASES.list_payables.execute(
+      {
+        ...(filter === 'all' ? {} : { status: ['open', 'partially_settled'] as const }),
+        overdueOnly: false,
+        limit: 200,
+        offset: 0,
+      },
+      context,
+    )
 
     if (!all.ok) {
       return {
@@ -51,36 +45,28 @@ export default async function PayablesPage({
       }
     }
 
-    const names = new Map(
-      (suppliers.ok ? suppliers.value.rows : []).map((supplier) => [supplier.id, supplier.name]),
-    )
-
     const open = all.value.rows.filter(
-      (title) => title.status === 'open' || title.status === 'partially_settled',
+      ({ title }) => title.status === 'open' || title.status === 'partially_settled',
     )
-    const overdue = open.filter((title) => title.dueDate < businessDate)
-    const dueToday = open.filter((title) => title.dueDate === businessDate)
+    const overdue = open.filter(({ title }) => title.dueDate < businessDate)
+    const dueToday = open.filter(({ title }) => title.dueDate === businessDate)
 
-    const visible = all.value.rows.filter((title) => {
-      if (filter === 'overdue') return title.dueDate < businessDate && open.includes(title)
-      if (filter === 'today') return title.dueDate === businessDate && open.includes(title)
+    const visible = all.value.rows.filter((row) => {
+      if (filter === 'overdue') return row.title.dueDate < businessDate && open.includes(row)
+      if (filter === 'today') return row.title.dueDate === businessDate && open.includes(row)
       return true
     })
 
     return {
-      rows: visible.map((title) =>
-        presentTitle(
-          title,
-          names.get(title.supplierId) ?? 'Unknown supplier',
-          businessDate === '' ? null : businessDate,
-        ),
+      rows: visible.map(({ title, partyName }) =>
+        presentTitle(title, partyName, businessDate === '' ? null : businessDate),
       ),
       businessDate,
       totals: {
-        outstanding: formatMoney(sumMoney(open.map(outstandingAmount))),
-        overdue: formatMoney(sumMoney(overdue.map(outstandingAmount))),
+        outstanding: formatMoney(sumMoney(open.map((row) => outstandingAmount(row.title)))),
+        overdue: formatMoney(sumMoney(overdue.map((row) => outstandingAmount(row.title)))),
         overdueCount: overdue.length,
-        dueToday: formatMoney(sumMoney(dueToday.map(outstandingAmount))),
+        dueToday: formatMoney(sumMoney(dueToday.map((row) => outstandingAmount(row.title)))),
         dueTodayCount: dueToday.length,
       },
     }

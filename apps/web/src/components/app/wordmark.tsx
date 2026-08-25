@@ -27,18 +27,3 @@ export function Wordmark({
     </span>
   )
 }
-
-/** The square mark, for the places a full wordmark does not fit. */
-export function WordmarkGlyph({ className }: { readonly className?: string }): React.JSX.Element {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        'font-display flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-lg font-semibold text-primary-foreground',
-        className,
-      )}
-    >
-      L
-    </span>
-  )
-}

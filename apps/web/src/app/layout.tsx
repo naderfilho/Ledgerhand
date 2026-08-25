@@ -20,16 +20,17 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Ledgerhand',
-    template: '%s · Ledgerhand',
+    default: 'LedgerHand',
+    template: '%s · LedgerHand',
   },
   description: 'A small-business ERP that an AI agent can operate safely.',
 }
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#fbfbfc' },
-    { media: '(prefers-color-scheme: dark)', color: '#1c1d22' },
+    // The two grounds of the palette, so the browser chrome matches the page.
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#16192b' },
   ],
 }
 

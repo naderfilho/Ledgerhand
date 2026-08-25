@@ -367,7 +367,10 @@ describe('title queries', () => {
       ),
     )
     expect(dueToday.rows).toHaveLength(1)
-    expect(formatMoney(dueToday.rows[0]?.amount ?? ZERO_MONEY)).toBe('100.00')
+    expect(formatMoney(dueToday.rows[0]?.title.amount ?? ZERO_MONEY)).toBe('100.00')
+    // The list resolves the party in the same query, so a screen never has to
+    // fetch the supplier table to print a name.
+    expect(dueToday.rows[0]?.partyName).toBe('Northwind Supplies')
   })
 
   it('reports a title that does not exist', async () => {

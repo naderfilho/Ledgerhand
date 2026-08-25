@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { businessDateSchema, type BusinessDate } from '../kit/business-date.js'
+import type { Paginated } from '../ports/repositories.js'
 import { today, type ExecutionContext } from '../context/execution-context.js'
 import { domainEvent } from '../events/domain-event.js'
 import { domainError, notFound, type DomainError } from '../kit/errors.js'
@@ -257,6 +258,31 @@ export const reverseSettlement = defineUseCase({
   },
 })
 
+/**
+ * Titles carry the id of the party that owes or is owed, which is useless to
+ * a reader and to a model. Resolving the names here, in one batched query
+ * over exactly the ids on the page, is what keeps a screen from loading the
+ * whole customer table to print a column -- and what keeps an agent from
+ * spending a second tool call to find out who "9551408e" is.
+ */
+async function withParties<T extends Title>(
+  page: Paginated<T>,
+  names: ReadonlyMap<string, { readonly name: string }>,
+  asOf: BusinessDate,
+): Promise<
+  Paginated<{ readonly title: T; readonly partyName: string | null; readonly asOf: BusinessDate }>
+> {
+  return await Promise.resolve({
+    rows: page.rows.map((title) => ({
+      title,
+      partyName:
+        names.get(title.kind === 'receivable' ? title.customerId : title.supplierId)?.name ?? null,
+      asOf,
+    })),
+    total: page.total,
+  })
+}
+
 export const listReceivables = defineUseCase({
   name: 'list_receivables',
   title: 'List receivables',
@@ -272,17 +298,21 @@ export const listReceivables = defineUseCase({
     limit: z.number().int().min(1).max(200).default(50),
     offset: z.number().int().min(0).default(0),
   }),
-  execute: async (input, context) =>
-    ok(
-      await context.uow.finance.listReceivables({
-        ...(input.status === undefined ? {} : { status: input.status }),
-        ...(input.dueOn === undefined ? {} : { dueOn: input.dueOn }),
-        ...(input.dueBefore === undefined ? {} : { dueBefore: input.dueBefore }),
-        ...(input.overdueOnly ? { overdueAsOf: today(context) } : {}),
-        page: { limit: input.limit, offset: input.offset },
-      }),
-    ),
-  present: (page) => presentPage(page, (title) => presentTitle(title)),
+  execute: async (input, context) => {
+    const page = await context.uow.finance.listReceivables({
+      ...(input.status === undefined ? {} : { status: input.status }),
+      ...(input.dueOn === undefined ? {} : { dueOn: input.dueOn }),
+      ...(input.dueBefore === undefined ? {} : { dueBefore: input.dueBefore }),
+      ...(input.overdueOnly ? { overdueAsOf: today(context) } : {}),
+      page: { limit: input.limit, offset: input.offset },
+    })
+    const customers = await context.uow.customers.findManyByIds(
+      page.rows.map((title) => title.customerId),
+    )
+    return ok(await withParties(page, customers, today(context)))
+  },
+  present: (page) =>
+    presentPage(page, ({ title, partyName, asOf }) => presentTitle(title, partyName, asOf)),
 })
 
 export const listPayables = defineUseCase({
@@ -300,17 +330,21 @@ export const listPayables = defineUseCase({
     limit: z.number().int().min(1).max(200).default(50),
     offset: z.number().int().min(0).default(0),
   }),
-  execute: async (input, context) =>
-    ok(
-      await context.uow.finance.listPayables({
-        ...(input.status === undefined ? {} : { status: input.status }),
-        ...(input.dueOn === undefined ? {} : { dueOn: input.dueOn }),
-        ...(input.dueBefore === undefined ? {} : { dueBefore: input.dueBefore }),
-        ...(input.overdueOnly ? { overdueAsOf: today(context) } : {}),
-        page: { limit: input.limit, offset: input.offset },
-      }),
-    ),
-  present: (page) => presentPage(page, (title) => presentTitle(title)),
+  execute: async (input, context) => {
+    const page = await context.uow.finance.listPayables({
+      ...(input.status === undefined ? {} : { status: input.status }),
+      ...(input.dueOn === undefined ? {} : { dueOn: input.dueOn }),
+      ...(input.dueBefore === undefined ? {} : { dueBefore: input.dueBefore }),
+      ...(input.overdueOnly ? { overdueAsOf: today(context) } : {}),
+      page: { limit: input.limit, offset: input.offset },
+    })
+    const suppliers = await context.uow.suppliers.findManyByIds(
+      page.rows.map((title) => title.supplierId),
+    )
+    return ok(await withParties(page, suppliers, today(context)))
+  },
+  present: (page) =>
+    presentPage(page, ({ title, partyName, asOf }) => presentTitle(title, partyName, asOf)),
 })
 
 export const openCashSession = defineUseCase({

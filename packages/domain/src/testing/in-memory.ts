@@ -203,6 +203,15 @@ class InMemoryCustomers implements CustomerRepository {
     return await Promise.resolve(this.db.customers.get(id) ?? null)
   }
 
+  async findManyByIds(ids: readonly CustomerId[]): Promise<ReadonlyMap<CustomerId, Customer>> {
+    const found = new Map<CustomerId, Customer>()
+    for (const id of ids) {
+      const customer = this.db.customers.get(id)
+      if (customer !== undefined) found.set(id, customer)
+    }
+    return await Promise.resolve(found)
+  }
+
   async list(filter: PartyFilter): Promise<Paginated<Customer>> {
     const rows = [...this.db.customers.values()]
       .filter((customer) => (filter.activeOnly === true ? customer.active : true))
@@ -222,6 +231,15 @@ class InMemorySuppliers implements SupplierRepository {
 
   async findById(id: SupplierId): Promise<Supplier | null> {
     return await Promise.resolve(this.db.suppliers.get(id) ?? null)
+  }
+
+  async findManyByIds(ids: readonly SupplierId[]): Promise<ReadonlyMap<SupplierId, Supplier>> {
+    const found = new Map<SupplierId, Supplier>()
+    for (const id of ids) {
+      const supplier = this.db.suppliers.get(id)
+      if (supplier !== undefined) found.set(id, supplier)
+    }
+    return await Promise.resolve(found)
   }
 
   async list(filter: PartyFilter): Promise<Paginated<Supplier>> {
