@@ -50,7 +50,6 @@ export async function postgresIsAvailable(): Promise<boolean> {
 export const SKIP_MESSAGE =
   'Postgres is not reachable on localhost:5433. Start it with "docker compose -f docker/compose.yml up -d postgres-test".'
 
-
 export interface IntegrationTenant {
   readonly tenantId: TenantId
   readonly userId: UserId
@@ -65,8 +64,11 @@ export interface IntegrationContext {
   readonly close: () => Promise<void>
 }
 
-/** The schema is prepared once per run by the global setup, not here. */
-export async function startIntegration(): Promise<IntegrationContext> {
+/**
+ * The schema is prepared once per run by the global setup, so opening the two
+ * pools is synchronous -- there is nothing to await here.
+ */
+export function startIntegration(): IntegrationContext {
   const app = createDatabase(APP_URL, { max: 4 })
   const admin = createDatabase(ADMIN_URL, { max: 2 })
   return {

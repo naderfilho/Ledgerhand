@@ -18,14 +18,15 @@ import {
  * Tenant isolation
  * ---------------------------------------------------------------------------
  * The claim "multi-tenant with row level security" is worth nothing without a
- * test that tries to break it. These do, from four directions:
+ * test that tries to break it. These do, from five directions:
  *
  *   1. reading another tenant's rows through the repositories
  *   2. reading them with raw SQL, bypassing the repositories entirely
  *   3. reading them with no tenant set at all
  *   4. writing a row belonging to another tenant
+ *   5. rewriting history that the role has no permission to touch
  *
- * All four run as `ledgerhand_app`, the role the application actually uses.
+ * All of them run as `ledgerhand_app`, the role the application actually uses.
  */
 
 const available = await postgresIsAvailable()
@@ -57,7 +58,7 @@ describe.skipIf(!available)('row level security', () => {
   let northwind: IntegrationTenant
 
   beforeAll(async () => {
-    context = await startIntegration()
+    context = startIntegration()
     aurora = await createTenant(context, 'Aurora')
     northwind = await createTenant(context, 'Northwind')
 

@@ -39,7 +39,7 @@ describe.skipIf(!available)('persistence through the SQL adapters', () => {
     await withUnitOfWork(context.app.db, tenant.session, handler, { now: FIXED_NOW })
 
   beforeAll(async () => {
-    context = await startIntegration()
+    context = startIntegration()
     tenant = await createTenant(context, 'Persistence')
   })
 
