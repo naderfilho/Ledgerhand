@@ -31,6 +31,7 @@ import {
 } from '../model/purchase-order.js'
 import { applyEntry } from '../model/stock.js'
 import { defineUseCase } from './definition.js'
+import { presentPage, presentParty, presentPurchaseOrder, presentTitle } from '../views/index.js'
 import { recordMovement } from './stock.js'
 
 const purchaseItemSchema = z.object({
@@ -128,6 +129,7 @@ export const createPurchaseOrder = defineUseCase({
 
     return ok(order)
   },
+  present: (order) => presentPurchaseOrder(order),
 })
 
 export const placePurchaseOrder = defineUseCase({
@@ -156,6 +158,7 @@ export const placePurchaseOrder = defineUseCase({
 
     return ok(placed.value)
   },
+  present: (order) => presentPurchaseOrder(order),
 })
 
 export const receivePurchaseOrder = defineUseCase({
@@ -299,6 +302,11 @@ export const receivePurchaseOrder = defineUseCase({
 
     return ok({ order: outcome.order, payable, receivedTotal: outcome.receivedTotal })
   },
+  present: ({ order, payable, receivedTotal }) => ({
+    order: presentPurchaseOrder(order),
+    payable: payable === null ? null : presentTitle(payable),
+    receivedTotal: formatMoney(receivedTotal),
+  }),
 })
 
 export const cancelPurchaseOrder = defineUseCase({
@@ -330,6 +338,7 @@ export const cancelPurchaseOrder = defineUseCase({
 
     return ok(cancelled.value)
   },
+  present: (order) => presentPurchaseOrder(order),
   preview: async (input, context) => {
     const loaded = await loadPurchaseOrder(context, input.orderId)
     if (!loaded.ok) return loaded
@@ -363,6 +372,7 @@ export const listPurchaseOrders = defineUseCase({
         page: { limit: input.limit, offset: input.offset },
       }),
     ),
+  present: (page) => presentPage(page, (order) => presentPurchaseOrder(order)),
 })
 
 export const getPurchaseOrder = defineUseCase({
@@ -392,4 +402,8 @@ export const getPurchaseOrder = defineUseCase({
     const supplier = await context.uow.suppliers.findById(order.supplierId)
     return ok({ order, supplier })
   },
+  present: ({ order, supplier }) => ({
+    order: presentPurchaseOrder(order, supplier?.name ?? ''),
+    supplier: supplier === null ? null : presentParty(supplier),
+  }),
 })

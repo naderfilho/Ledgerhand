@@ -469,6 +469,21 @@ export class SqlFiscal implements FiscalRepository {
     return row === undefined ? null : toFiscalDocument(row)
   }
 
+  async findBySeriesAndNumber(series: string, number: string): Promise<FiscalDocument | null> {
+    const [row] = await this.tx
+      .select()
+      .from(fiscalDocuments)
+      .where(
+        and(
+          eq(fiscalDocuments.tenantId, this.tenantId),
+          eq(fiscalDocuments.series, series),
+          eq(fiscalDocuments.number, number),
+        ),
+      )
+      .limit(1)
+    return row === undefined ? null : toFiscalDocument(row)
+  }
+
   async save(document: FiscalDocument): Promise<void> {
     await this.tx
       .insert(fiscalDocuments)

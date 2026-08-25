@@ -42,7 +42,12 @@ export interface WebSession {
 
 let handle: DatabaseHandle | null = null
 
-function database(): DatabaseHandle {
+/**
+ * One pool for the process, shared by the pages, the Server Actions and the
+ * ERP API routes. Exported because the API routes need the same connection --
+ * a second pool would double the connections for no reason.
+ */
+export function database(): DatabaseHandle {
   handle ??= createDatabase(
     process.env['DATABASE_URL'] ??
       'postgres://ledgerhand_app:ledgerhand_app@localhost:5432/ledgerhand',

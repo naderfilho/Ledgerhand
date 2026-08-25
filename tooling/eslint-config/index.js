@@ -105,6 +105,29 @@ export const architectureBoundaries = [
     },
   },
   {
+    // The MCP server reaches the ERP through the gateway port. Only its
+    // composition root -- `runtime` and `bin` -- is allowed to know that one
+    // of the two adapters happens to be a database, which is what keeps the
+    // HTTP deployment (no database credentials at all) a supported shape
+    // rather than an aspiration.
+    files: ['packages/mcp-server/src/**/*.ts'],
+    ignores: ['packages/mcp-server/src/runtime/**', 'packages/mcp-server/src/bin/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@ledgerhand/db', '@ledgerhand/db/*', 'drizzle-orm', 'drizzle-orm/*', 'pg'],
+              message:
+                'Only packages/mcp-server/src/runtime may know about the database. Everything else goes through UseCaseGateway.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ['packages/agent/**/*.ts'],
     rules: {
       'no-restricted-imports': [

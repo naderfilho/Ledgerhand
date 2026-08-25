@@ -8,6 +8,7 @@ import { domainEvent } from '../events/domain-event.js'
 import { productUnitSchema, type Product } from '../model/product.js'
 import type { Customer, Supplier } from '../model/party.js'
 import { defineUseCase } from './definition.js'
+import { presentBalance, presentPage, presentParty, presentProduct } from '../views/index.js'
 import { DEFAULT_PAGE, type Paginated } from '../ports/repositories.js'
 
 const pageSchema = z
@@ -79,6 +80,7 @@ export const createProduct = defineUseCase({
 
     return ok(product)
   },
+  present: presentProduct,
 })
 
 export const updateProduct = defineUseCase({
@@ -144,6 +146,7 @@ export const updateProduct = defineUseCase({
 
     return ok(updated)
   },
+  present: presentProduct,
 })
 
 export const archiveProduct = defineUseCase({
@@ -190,6 +193,7 @@ export const archiveProduct = defineUseCase({
 
     return ok(archived)
   },
+  present: presentProduct,
   preview: async (input, context) => {
     const product = await context.uow.products.findById(asId<ProductId>(input.productId))
     if (product === null) return err(notFound('Product', input.productId))
@@ -232,6 +236,7 @@ export const createCustomer = defineUseCase({
 
     return ok(customer)
   },
+  present: presentParty,
 })
 
 export const createSupplier = defineUseCase({
@@ -267,6 +272,7 @@ export const createSupplier = defineUseCase({
 
     return ok(supplier)
   },
+  present: presentParty,
 })
 
 export const listProducts = defineUseCase({
@@ -289,6 +295,7 @@ export const listProducts = defineUseCase({
     })
     return ok(result)
   },
+  present: (page) => presentPage(page, presentProduct),
 })
 
 export const getProduct = defineUseCase({
@@ -317,6 +324,10 @@ export const getProduct = defineUseCase({
     const balance = await context.uow.stock.getBalance(product.id)
     return ok({ product, balance })
   },
+  present: ({ product, balance }) => ({
+    product: presentProduct(product),
+    balance: presentBalance(balance),
+  }),
 })
 
 export const listCustomers = defineUseCase({
@@ -338,6 +349,7 @@ export const listCustomers = defineUseCase({
         ...(input.page === undefined ? {} : { page: input.page }),
       }),
     ),
+  present: (page) => presentPage(page, presentParty),
 })
 
 export const listSuppliers = defineUseCase({
@@ -359,4 +371,5 @@ export const listSuppliers = defineUseCase({
         ...(input.page === undefined ? {} : { page: input.page }),
       }),
     ),
+  present: (page) => presentPage(page, presentParty),
 })

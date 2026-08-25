@@ -49,6 +49,7 @@ export const USE_CASES = {
   cancel_sales_order: sales.cancelSalesOrder,
   list_sales_orders: sales.listSalesOrders,
   get_sales_order: sales.getSalesOrder,
+  get_fiscal_document: sales.getFiscalDocument,
 
   // Purchasing
   create_purchase_order: purchasing.createPurchaseOrder,

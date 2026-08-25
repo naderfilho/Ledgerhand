@@ -69,7 +69,11 @@ export default async function ReceivablesPage({
 
     return {
       rows: visible.map((title) =>
-        presentTitle(title, names.get(title.customerId) ?? 'Unknown customer', businessDate),
+        presentTitle(
+          title,
+          names.get(title.customerId) ?? 'Unknown customer',
+          businessDate === '' ? null : businessDate,
+        ),
       ),
       businessDate,
       totals: {

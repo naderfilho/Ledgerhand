@@ -35,6 +35,12 @@ export interface Credentials extends AccountRecord {
 export interface AuthLookup {
   findByEmail(email: string): Promise<Credentials | null>
   findActiveById(userId: string): Promise<AccountRecord | null>
+  /**
+   * The same record without the credential. Used by the MCP server, which
+   * names the user it acts for by email and must not so much as see a
+   * password hash to do it.
+   */
+  findActiveByEmail(email: string): Promise<AccountRecord | null>
 }
 
 export function createAuthLookup(url: string): AuthLookup {
@@ -76,6 +82,36 @@ export function createAuthLookup(url: string): AuthLookup {
         currency: row.currency,
         passwordHash: row.passwordHash,
         active: row.active,
+      }
+    },
+
+    findActiveByEmail: async (email) => {
+      const [row] = await database()
+        .db.select({
+          userId: users.id,
+          tenantId: users.tenantId,
+          role: users.role,
+          name: users.name,
+          email: users.email,
+          tenantName: tenants.name,
+          timeZone: tenants.timeZone,
+          currency: tenants.currency,
+        })
+        .from(users)
+        .innerJoin(tenants, eq(tenants.id, users.tenantId))
+        .where(and(eq(users.email, email), eq(users.active, true)))
+        .limit(1)
+
+      if (row === undefined) return null
+      return {
+        userId: asId<UserId>(row.userId),
+        tenantId: asId<TenantId>(row.tenantId),
+        role: row.role,
+        name: row.name,
+        email: row.email,
+        tenantName: row.tenantName,
+        timeZone: row.timeZone,
+        currency: row.currency,
       }
     },
 

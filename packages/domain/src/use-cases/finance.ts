@@ -37,6 +37,7 @@ import {
   type Title,
 } from '../model/finance.js'
 import { defineUseCase } from './definition.js'
+import { presentCashSession, presentPage, presentSettlement, presentTitle } from '../views/index.js'
 
 /**
  * Every settlement lands in the cash session of the day it is dated. That is
@@ -130,6 +131,11 @@ export const settleReceivable = defineUseCase({
 
     return ok(settled.value)
   },
+  present: ({ title, settlement, session }) => ({
+    title: presentTitle(title),
+    settlement: presentSettlement(settlement),
+    cashSession: presentCashSession(session, expectedClosingBalance(session)),
+  }),
   preview: async (input, context) => {
     const receivable = await context.uow.finance.findReceivable(
       asId<ReceivableId>(input.receivableId),
@@ -173,6 +179,11 @@ export const settlePayable = defineUseCase({
 
     return ok(settled.value)
   },
+  present: ({ title, settlement, session }) => ({
+    title: presentTitle(title),
+    settlement: presentSettlement(settlement),
+    cashSession: presentCashSession(session, expectedClosingBalance(session)),
+  }),
   preview: async (input, context) => {
     const payable = await context.uow.finance.findPayable(asId<PayableId>(input.payableId))
     if (payable === null) return err(notFound('Payable', input.payableId))
@@ -234,6 +245,7 @@ export const reverseSettlement = defineUseCase({
 
     return ok({ settlementId: settlement.id, reversed: true })
   },
+  present: ({ settlementId, reversed }) => ({ settlementId, reversed }),
   preview: async (input, context) => {
     const settlement = await context.uow.finance.findSettlement(
       asId<SettlementId>(input.settlementId),
@@ -270,6 +282,7 @@ export const listReceivables = defineUseCase({
         page: { limit: input.limit, offset: input.offset },
       }),
     ),
+  present: (page) => presentPage(page, (title) => presentTitle(title)),
 })
 
 export const listPayables = defineUseCase({
@@ -297,6 +310,7 @@ export const listPayables = defineUseCase({
         page: { limit: input.limit, offset: input.offset },
       }),
     ),
+  present: (page) => presentPage(page, (title) => presentTitle(title)),
 })
 
 export const openCashSession = defineUseCase({
@@ -346,6 +360,7 @@ export const openCashSession = defineUseCase({
 
     return ok(session)
   },
+  present: (session) => presentCashSession(session, expectedClosingBalance(session)),
 })
 
 export const closeDailyCash = defineUseCase({
@@ -394,6 +409,7 @@ export const closeDailyCash = defineUseCase({
 
     return ok(closed.value)
   },
+  present: (session) => presentCashSession(session, expectedClosingBalance(session)),
   preview: async (input, context) => {
     const businessDate = input.businessDate ?? today(context)
     const session = await context.uow.cash.findByDate(businessDate)
@@ -435,6 +451,11 @@ export const getCashPosition = defineUseCase({
       unsettledTitles,
     })
   },
+  present: ({ businessDate, session, unsettledTitles }) => ({
+    businessDate,
+    unsettledTitles,
+    session: session === null ? null : presentCashSession(session, expectedClosingBalance(session)),
+  }),
 })
 
 export type FinanceTitle = Receivable | Payable

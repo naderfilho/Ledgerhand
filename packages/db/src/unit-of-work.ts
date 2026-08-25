@@ -4,6 +4,7 @@ import {
   type DomainEventDraft,
   type EventRecorder,
   type ExecutionContext,
+  type IdempotencyStore,
   type IdGenerator,
   type Role,
   type TenantId,
@@ -14,6 +15,7 @@ import { sql } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
 import type { Database } from './client.js'
 import { SqlAudit } from './adapters/audit.js'
+import { SqlIdempotencyStore } from './adapters/idempotency.js'
 import { SqlCustomers, SqlProducts, SqlSuppliers } from './adapters/catalog.js'
 import { SqlCash, SqlFinance, SqlFiscal } from './adapters/finance.js'
 import { SqlPurchaseOrders } from './adapters/purchasing.js'
@@ -84,8 +86,31 @@ export function buildUnitOfWork(
 }
 
 /**
- * Runs one use case inside one transaction.
- *
+ * Runs one use case inside one transaction. The common case: a caller that
+ * only needs the execution context. `withScope` below is the same thing with
+ * the idempotency store exposed as well.
+ */
+export async function withUnitOfWork<T>(
+  db: Database,
+  session: Session,
+  handler: (context: ExecutionContext) => Promise<T>,
+  options: RunOptions = {},
+): Promise<T> {
+  return await withScope(db, session, async (scope) => await handler(scope.context), options)
+}
+
+/**
+ * Everything a remote caller gets: the execution context plus the idempotency
+ * store. The store is deliberately absent from `ExecutionContext` -- a use
+ * case must not be able to see whether it is being replayed, or it would start
+ * making decisions about it. Retrying a call is the transport's problem.
+ */
+export interface ExecutionScope {
+  readonly context: ExecutionContext
+  readonly idempotency: IdempotencyStore
+}
+
+/**
  * Three things happen here that the domain is deliberately unaware of:
  *
  *  1. `set_config('app.tenant_id', ..., true)` scopes row level security to
@@ -102,10 +127,10 @@ export function buildUnitOfWork(
  *     business rejection should discard the work, and in practice a rejected
  *     use case has written nothing anyway.
  */
-export async function withUnitOfWork<T>(
+export async function withScope<T>(
   db: Database,
   session: Session,
-  handler: (context: ExecutionContext) => Promise<T>,
+  handler: (scope: ExecutionScope) => Promise<T>,
   options: RunOptions = {},
 ): Promise<T> {
   // The composition root is the one place allowed to read the wall clock:
@@ -129,7 +154,10 @@ export async function withUnitOfWork<T>(
       uow: buildUnitOfWork(tx, session, events, ids, now),
     }
 
-    const result = await handler(context)
+    const result = await handler({
+      context,
+      idempotency: new SqlIdempotencyStore(tx, session.tenantId),
+    })
     await flushEvents(tx, session, events.recorded, now)
     return result
   })

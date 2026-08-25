@@ -41,7 +41,11 @@ export default async function SalesOrderPage({
     return {
       order: presentSalesOrder(found.value.order, found.value.customer?.name ?? 'Unknown customer'),
       receivables: found.value.receivables.map((title) =>
-        presentTitle(title, found.value.customer?.name ?? '', businessDate),
+        presentTitle(
+          title,
+          found.value.customer?.name ?? null,
+          businessDate === '' ? null : businessDate,
+        ),
       ),
       document:
         found.value.fiscalDocument === null

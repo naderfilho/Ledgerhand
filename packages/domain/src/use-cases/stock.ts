@@ -29,6 +29,13 @@ import {
   type StockMovementReference,
 } from '../model/stock.js'
 import { defineUseCase } from './definition.js'
+import {
+  presentAlert,
+  presentBalance,
+  presentMovement,
+  presentPage,
+  presentStockRow,
+} from '../views/index.js'
 
 /**
  * Writes one movement and the balance it produced, then reports a minimum
@@ -161,6 +168,10 @@ export const registerStockEntry = defineUseCase({
 
     return ok({ movement, balance: applied.value.balance })
   },
+  present: ({ movement, balance }) => ({
+    movement: presentMovement(movement),
+    balance: presentBalance(balance),
+  }),
 })
 
 export const registerStockExit = defineUseCase({
@@ -212,6 +223,10 @@ export const registerStockExit = defineUseCase({
 
     return ok({ movement, balance: applied.value.balance })
   },
+  present: ({ movement, balance }) => ({
+    movement: presentMovement(movement),
+    balance: presentBalance(balance),
+  }),
   preview: async (input, context) => {
     const product = await context.uow.products.findById(asId<ProductId>(input.productId))
     if (product === null) return err(notFound('Product', input.productId))
@@ -281,6 +296,10 @@ export const adjustStock = defineUseCase({
 
     return ok({ movement, balance: applied.value.balance })
   },
+  present: ({ movement, balance }) => ({
+    movement: presentMovement(movement),
+    balance: presentBalance(balance),
+  }),
   preview: async (input, context) => {
     const product = await context.uow.products.findById(asId<ProductId>(input.productId))
     if (product === null) return err(notFound('Product', input.productId))
@@ -332,6 +351,8 @@ export const getStockPosition = defineUseCase({
 
     return ok(rows)
   },
+  present: (rows) =>
+    rows.map((row) => presentStockRow(row.product, row.balance, row.available, row.value)),
 })
 
 export const listProductsBelowMinimum = defineUseCase({
@@ -343,6 +364,7 @@ export const listProductsBelowMinimum = defineUseCase({
   risk: 'read',
   inputSchema: z.object({}),
   execute: async (_input, context) => ok(await context.uow.stock.listBelowMinimum()),
+  present: (alerts) => alerts.map(presentAlert),
 })
 
 export const listStockMovements = defineUseCase({
@@ -368,4 +390,5 @@ export const listStockMovements = defineUseCase({
         page: { limit: input.limit, offset: input.offset },
       }),
     ),
+  present: (page) => presentPage(page, presentMovement),
 })

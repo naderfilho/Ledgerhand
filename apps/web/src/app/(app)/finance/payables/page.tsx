@@ -69,7 +69,11 @@ export default async function PayablesPage({
 
     return {
       rows: visible.map((title) =>
-        presentTitle(title, names.get(title.supplierId) ?? 'Unknown supplier', businessDate),
+        presentTitle(
+          title,
+          names.get(title.supplierId) ?? 'Unknown supplier',
+          businessDate === '' ? null : businessDate,
+        ),
       ),
       businessDate,
       totals: {

@@ -496,6 +496,13 @@ class InMemoryFiscal implements FiscalRepository {
     return await Promise.resolve(found ?? null)
   }
 
+  async findBySeriesAndNumber(series: string, number: string): Promise<FiscalDocument | null> {
+    const found = [...this.db.fiscalDocuments.values()].find(
+      (document) => document.series === series && document.number === number,
+    )
+    return await Promise.resolve(found ?? null)
+  }
+
   async save(document: FiscalDocument): Promise<void> {
     this.db.fiscalDocuments.set(document.id, document)
     await Promise.resolve()

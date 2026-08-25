@@ -6,6 +6,9 @@
     },
     {
       "path": "packages/db/tsconfig.build.json"
+    },
+    {
+      "path": "packages/mcp-server/tsconfig.build.json"
     }
   ]
 }

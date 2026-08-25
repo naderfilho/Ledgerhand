@@ -149,7 +149,7 @@ export function TitlesPage({
                             <SettleDialog
                               kind={kind}
                               titleId={title.id}
-                              partyName={title.partyName}
+                              partyName={title.partyName ?? ''}
                               description={title.description}
                               outstanding={title.outstanding}
                             />

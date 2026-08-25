@@ -6,11 +6,19 @@ import {
   type BusinessDate,
 } from '../kit/business-date.js'
 import { today } from '../context/execution-context.js'
-import { sumMoney, type Money } from '../kit/money.js'
+import { formatMoney, sumMoney, type Money } from '../kit/money.js'
 import { ok } from '../kit/result.js'
 import { outstandingAmount, type Title } from '../model/finance.js'
 import { availableQuantity, emptyBalance, stockValue } from '../model/stock.js'
 import { defineUseCase } from './definition.js'
+import {
+  presentCashFlowRow,
+  presentEvent,
+  presentPage,
+  presentSalesPeriodRow,
+  presentStockLine,
+  presentTitle,
+} from '../views/index.js'
 
 const rangeFields = {
   from: businessDateSchema.optional(),
@@ -55,6 +63,12 @@ export const reportSalesByPeriod = defineUseCase({
     })
     return ok({ from, to, granularity: input.granularity, rows })
   },
+  present: ({ from, to, granularity, rows }) => ({
+    from,
+    to,
+    granularity,
+    rows: rows.map(presentSalesPeriodRow),
+  }),
 })
 
 export const reportCashFlow = defineUseCase({
@@ -71,6 +85,7 @@ export const reportCashFlow = defineUseCase({
     const rows = await context.uow.reporting.cashFlow({ from, to })
     return ok({ from, to, rows })
   },
+  present: ({ from, to, rows }) => ({ from, to, rows: rows.map(presentCashFlowRow) }),
 })
 
 export const reportStockPosition = defineUseCase({
@@ -111,6 +126,11 @@ export const reportStockPosition = defineUseCase({
     const totalValue = sumMoney(rows.map((row) => row.value))
     return ok({ rows, totalValue, productCount: rows.length })
   },
+  present: ({ rows, totalValue, productCount }) => ({
+    productCount,
+    totalValue: formatMoney(totalValue),
+    rows: rows.map((row) => presentStockLine(row.product, row)),
+  }),
 })
 
 export const reportOverdueTitles = defineUseCase({
@@ -143,6 +163,13 @@ export const reportOverdueTitles = defineUseCase({
       totalPayable: totalOutstanding(payables.rows),
     })
   },
+  present: ({ asOf, receivables, payables, totalReceivable, totalPayable }) => ({
+    asOf,
+    receivables: receivables.map((title) => presentTitle(title, null, asOf)),
+    payables: payables.map((title) => presentTitle(title, null, asOf)),
+    totalReceivable: formatMoney(totalReceivable),
+    totalPayable: formatMoney(totalPayable),
+  }),
 })
 
 export const getCurrentContext = defineUseCase({
@@ -167,6 +194,7 @@ export const getCurrentContext = defineUseCase({
       cashSessionStatus: session?.status ?? 'not_opened',
     })
   },
+  present: (value) => value,
 })
 
 export const listDomainEvents = defineUseCase({
@@ -196,4 +224,5 @@ export const listDomainEvents = defineUseCase({
         page: { limit: input.limit, offset: input.offset },
       }),
     ),
+  present: (page) => presentPage(page, presentEvent),
 })

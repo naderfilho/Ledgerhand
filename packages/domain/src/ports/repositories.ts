@@ -157,6 +157,7 @@ export interface CashRepository {
 export interface FiscalRepository {
   findById(id: FiscalDocumentId): Promise<FiscalDocument | null>
   findBySalesOrder(orderId: SalesOrderId): Promise<FiscalDocument | null>
+  findBySeriesAndNumber(series: string, number: string): Promise<FiscalDocument | null>
   save(document: FiscalDocument): Promise<void>
 }
 

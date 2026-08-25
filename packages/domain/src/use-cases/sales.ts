@@ -39,6 +39,13 @@ import {
 } from '../model/sales-order.js'
 import { applyEntry, applyExit, applyReservation, releaseReservation } from '../model/stock.js'
 import { defineUseCase } from './definition.js'
+import {
+  presentFiscalDocument,
+  presentPage,
+  presentParty,
+  presentSalesOrder,
+  presentTitle,
+} from '../views/index.js'
 import { recordMovement } from './stock.js'
 
 const itemInputSchema = z.object({
@@ -179,6 +186,7 @@ export const createSalesOrder = defineUseCase({
 
     return ok(order)
   },
+  present: (order) => presentSalesOrder(order),
 })
 
 export const updateSalesOrderItems = defineUseCase({
@@ -220,6 +228,7 @@ export const updateSalesOrderItems = defineUseCase({
 
     return ok(updated)
   },
+  present: (order) => presentSalesOrder(order),
 })
 
 export const confirmSalesOrder = defineUseCase({
@@ -271,6 +280,7 @@ export const confirmSalesOrder = defineUseCase({
 
     return ok(order)
   },
+  present: (order) => presentSalesOrder(order),
 })
 
 function receivableDueDate(
@@ -423,6 +433,11 @@ export const invoiceSalesOrder = defineUseCase({
 
     return ok({ order: invoiced, document, receivables })
   },
+  present: ({ order, document, receivables }) => ({
+    order: presentSalesOrder(order),
+    fiscalDocument: presentFiscalDocument(document),
+    receivables: receivables.map((receivable) => presentTitle(receivable)),
+  }),
   preview: async (input, context) => {
     const loaded = await loadOrder(context, input.orderId)
     if (!loaded.ok) return loaded
@@ -548,6 +563,7 @@ export const cancelSalesOrder = defineUseCase({
 
     return ok(order)
   },
+  present: (order) => presentSalesOrder(order),
   preview: async (input, context) => {
     const loaded = await loadOrder(context, input.orderId)
     if (!loaded.ok) return loaded
@@ -595,6 +611,7 @@ export const listSalesOrders = defineUseCase({
         page: { limit: input.limit, offset: input.offset },
       }),
     ),
+  present: (page) => presentPage(page, (order) => presentSalesOrder(order)),
 })
 
 export const getSalesOrder = defineUseCase({
@@ -633,4 +650,45 @@ export const getSalesOrder = defineUseCase({
 
     return ok({ order, customer, receivables, fiscalDocument: document })
   },
+  present: ({ order, customer, receivables, fiscalDocument }) => ({
+    order: presentSalesOrder(order, customer?.name ?? ''),
+    customer: customer === null ? null : presentParty(customer),
+    receivables: receivables.map((receivable) => presentTitle(receivable, customer?.name ?? null)),
+    fiscalDocument: fiscalDocument === null ? null : presentFiscalDocument(fiscalDocument),
+  }),
+})
+
+export const getFiscalDocument = defineUseCase({
+  name: 'get_fiscal_document',
+  title: 'Get fiscal document',
+  summary:
+    'Returns one issued fiscal document, found either by its series and number or by the sales order it was issued for. Includes the total, the status and, when it was cancelled, the reason.',
+  capability: 'sales:read',
+  risk: 'read',
+  inputSchema: z
+    .object({
+      series: z.string().trim().max(8).optional(),
+      number: z.string().trim().max(20).optional(),
+      orderId: z.uuid().optional(),
+    })
+    .refine((value) => value.orderId !== undefined || value.number !== undefined, {
+      message: 'Provide either orderId, or a number (with its series, which defaults to A).',
+    }),
+  execute: async (input, context) => {
+    const series = input.series ?? DEFAULT_FISCAL_SERIES
+    const document =
+      input.orderId !== undefined
+        ? await context.uow.fiscal.findBySalesOrder(asId<SalesOrderId>(input.orderId))
+        : input.number !== undefined
+          ? await context.uow.fiscal.findBySeriesAndNumber(series, input.number)
+          : null
+
+    if (document === null) {
+      return err(
+        notFound('Fiscal document', input.orderId ?? `${series}-${input.number ?? 'unknown'}`),
+      )
+    }
+    return ok(document)
+  },
+  present: presentFiscalDocument,
 })

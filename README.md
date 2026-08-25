@@ -13,8 +13,8 @@ permissions, human confirmation for destructive actions, a complete audit
 trail, and a measured success rate. Everything here exists to make those four
 things verifiable rather than claimed.
 
-> **Status: phases 1 and 2 of 5 complete.** The domain, the database and the
-> web application are running. The MCP server, the agent and the eval suite are
+> **Status: phases 1 to 3 of 5 complete.** The domain, the database, the web
+> application and the MCP server are running. The agent and the eval suite are
 > next. This README grows with them.
 
 ---
@@ -23,15 +23,17 @@ things verifiable rather than claimed.
 
 | Area                 | State                                                                 |
 | -------------------- | --------------------------------------------------------------------- |
-| Domain model         | 41 use cases across catalogue, stock, sales, purchasing, finance      |
+| Domain model         | 43 use cases across catalogue, stock, sales, purchasing, finance      |
 | Business rules       | Enforced in the domain, not in the UI                                 |
 | Postgres + Drizzle   | Schema, migrations, adapters, gap-free fiscal numbering               |
 | Tenant isolation     | Row level security, attacked from five directions by tests            |
 | Demo data            | 90 days of reproducible trading, generated through the real use cases |
-| Tests                | 248 passing, 96% line coverage on the domain, property-based          |
+| Tests                | 290 passing, 96% line coverage on the domain, property-based          |
 | Authentication       | Auth.js v5, five roles, a Postgres role that can only read `users`    |
 | Web UI               | 19 routes, role-filtered, dark and light                              |
-| MCP server           | Phase 3                                                               |
+| ERP HTTP API         | The same use cases over HTTP, a bearer token mapped to a real user    |
+| MCP server           | 43 tools, 7 resources, 2 templates, 4 prompts, stdio and HTTP         |
+| Guardrails           | Role-filtered tools, idempotent writes, human approval to destroy     |
 | Agent with approvals | Phase 4                                                               |
 | Eval suite           | Phase 5                                                               |
 
@@ -104,16 +106,18 @@ not a promise in a document.
 Each of these is written up in [`docs/adr`](docs/adr) with the alternatives
 that were rejected and why.
 
-| ADR                                                        | Decision                                                     |
-| ---------------------------------------------------------- | ------------------------------------------------------------ |
-| [0001](docs/adr/0001-monorepo-and-package-boundaries.md)   | Six packages, one dependency direction, boundaries linted    |
-| [0002](docs/adr/0002-use-cases-as-data.md)                 | Use cases described as data; every adapter derives from them |
-| [0003](docs/adr/0003-fixed-point-arithmetic.md)            | Scaled `bigint` money and quantities; no floating point      |
-| [0004](docs/adr/0004-tenant-isolation.md)                  | Row level security with a non-owner application role         |
-| [0005](docs/adr/0005-domain-events-as-audit.md)            | Events committed in the same transaction as the change       |
-| [0006](docs/adr/0006-risk-classification-in-the-domain.md) | `read` / `write` / `destructive` decided by the domain       |
-| [0007](docs/adr/0007-simulated-fiscal-document.md)         | Simulated NF-e with a real, gap-free numbering seam          |
-| [0008](docs/adr/0008-business-dates-and-instants.md)       | A business day is not a timestamp                            |
+| ADR                                                         | Decision                                                     |
+| ----------------------------------------------------------- | ------------------------------------------------------------ |
+| [0001](docs/adr/0001-monorepo-and-package-boundaries.md)    | Six packages, one dependency direction, boundaries linted    |
+| [0002](docs/adr/0002-use-cases-as-data.md)                  | Use cases described as data; every adapter derives from them |
+| [0003](docs/adr/0003-fixed-point-arithmetic.md)             | Scaled `bigint` money and quantities; no floating point      |
+| [0004](docs/adr/0004-tenant-isolation.md)                   | Row level security with a non-owner application role         |
+| [0005](docs/adr/0005-domain-events-as-audit.md)             | Events committed in the same transaction as the change       |
+| [0006](docs/adr/0006-risk-classification-in-the-domain.md)  | `read` / `write` / `destructive` decided by the domain       |
+| [0007](docs/adr/0007-simulated-fiscal-document.md)          | Simulated NF-e with a real, gap-free numbering seam          |
+| [0008](docs/adr/0008-business-dates-and-instants.md)        | A business day is not a timestamp                            |
+| [0009](docs/adr/0009-mcp-server-over-a-gateway.md)          | The MCP server reaches the ERP through a gateway port        |
+| [0010](docs/adr/0010-one-presentation-for-every-adapter.md) | Every use case knows how to present itself as JSON           |
 
 ## Business rules the domain refuses to break
 
@@ -136,11 +140,78 @@ server all inherit them. Each has a test named after it.
 - Receiving more than was ordered is refused, with the outstanding quantity in
   the message.
 
+## The MCP server
+
+Every use case is a tool, derived from the descriptor rather than written out
+again: the schema advertised to the model is the schema that rejects it, and
+the risk in the tool annotations is the one the domain decided (ADR 0006).
+
+```
+tools       43, filtered by the caller's role -- a salesperson is never shown
+            invoice_sales_order, so the model is never tempted to try it
+resources   erp://catalog/products, erp://stock/position,
+            erp://stock/below-minimum, erp://sales/orders/pending,
+            erp://finance/receivables/overdue, erp://finance/payables/due-today,
+            erp://cash/today, plus the templates erp://reports/sales/{from}/{to}
+            and erp://fiscal/documents/{series}/{number}
+prompts     daily_cash_closing, minimum_stock_replenishment,
+            overdue_receivables_review, month_end_review
+```
+
+Three guarantees hold whatever the client sends:
+
+- **Permissions.** `tools/list` shows only what the role may run, `tools/call`
+  checks that same list, and the domain checks the capability again. A tool
+  that is not yours and a tool that does not exist produce the same message.
+- **Idempotent writes.** Every write takes an `idempotency_key`, and the record
+  is written in the transaction that performs the effect. A retry returns the
+  original result; the same key with different arguments is an error.
+- **Human approval.** A destructive tool stops and asks, over MCP elicitation,
+  showing the sentence the domain generates from the arguments -- never the
+  model's description of its own intentions. A client that cannot ask anyone
+  gets destructive tools refused rather than performed.
+
+### Running it
+
+Against the database directly, which is what a desktop client launches:
+
+```json
+{
+  "mcpServers": {
+    "ledgerhand": {
+      "command": "node",
+      "args": ["packages/mcp-server/dist/bin/stdio.js"],
+      "env": {
+        "DATABASE_URL": "postgres://ledgerhand_app:ledgerhand_app@localhost:5432/ledgerhand",
+        "MCP_USER_EMAIL": "finance@ledgerhand.dev"
+      }
+    }
+  }
+}
+```
+
+`MCP_USER_EMAIL` names the user; the tenant and the role come from that user's
+row. Pointing it at `readonly@ledgerhand.dev` produces a server that genuinely
+cannot write.
+
+Or over HTTP, through the ERP's own API -- the configuration where the MCP
+server holds no database credentials at all:
+
+```bash
+ERP_API_TOKENS=demo-token:finance@ledgerhand.dev pnpm --filter @ledgerhand/web dev
+MCP_GATEWAY=http ERP_BASE_URL=http://localhost:3000 ERP_API_TOKEN=demo-token pnpm --filter @ledgerhand/mcp-server dev:http
+```
+
+The tokens live in the environment, which is honest for a demo and not what a
+deployment should do: real tokens would be stored hashed, per user, with an
+expiry and a revocation list.
+
 ## Testing
 
 ```
-packages/domain   248 tests, 96.6% lines, 93% functions, 86% branches
-packages/db       integration tests against Postgres 17
+packages/domain      249 tests, 96.8% lines, 95.8% functions, 86.8% branches
+packages/mcp-server   25 tests, driven by a real MCP client over an in-memory transport
+packages/db          integration tests against Postgres 17: RLS, persistence, idempotency
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves

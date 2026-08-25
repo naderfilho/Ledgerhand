@@ -3,8 +3,8 @@ import type { Capability } from '../auth/roles.js'
 import { requireCapability } from '../auth/roles.js'
 import type { ExecutionContext } from '../context/execution-context.js'
 import { domainError, type DomainError } from '../kit/errors.js'
-import type { JsonObject } from '../kit/json.js'
-import { err, ok, type Result } from '../kit/result.js'
+import type { JsonObject, JsonValue } from '../kit/json.js'
+import { err, mapOk, ok, type Result } from '../kit/result.js'
 
 /**
  * ---------------------------------------------------------------------------
@@ -58,6 +58,18 @@ export interface UseCaseSpec<Input, Output> {
     context: ExecutionContext,
   ) => Promise<Result<Output, DomainError>>
   /**
+   * Converts the output into the JSON every adapter hands to its reader. It is
+   * required rather than optional because a use case whose result cannot leave
+   * the process is not finished: `Money` is a bigint number of cents, and an
+   * adapter left to serialise that on its own would either crash or -- worse --
+   * report 1234.50 as 123450. See `../views/index.js`.
+   *
+   * Declared after `execute` in every definition on purpose: `Output` is
+   * inferred from the handler, and a presenter written above it would be
+   * type-checked before there is an output type to check it against.
+   */
+  readonly present: (output: Output) => JsonValue
+  /**
    * A deterministic, code-generated sentence describing what executing this
    * input would do -- shown on the human approval card. Never produced by the
    * model, because the model is precisely the party whose account of its own
@@ -90,6 +102,15 @@ export interface UseCaseDescriptor {
     rawInput: unknown,
     context: ExecutionContext,
   ) => Promise<Result<unknown, DomainError>>
+  /**
+   * `run` followed by the use case's own presenter. This is what every remote
+   * caller uses -- the HTTP API and the MCP server -- because it is the only
+   * form of the result that survives a process boundary.
+   */
+  readonly runJson: (
+    rawInput: unknown,
+    context: ExecutionContext,
+  ) => Promise<Result<JsonValue, DomainError>>
   readonly preview:
     ((rawInput: unknown, context: ExecutionContext) => Promise<Result<string, DomainError>>) | null
 }
@@ -165,15 +186,30 @@ export function defineUseCase<Input, Output>(
     capability: spec.capability,
     risk: spec.risk,
     jsonSchema,
+    // Authorisation comes before validation, in every entry point. A caller
+    // who may not run an operation should be told that, not handed a critique
+    // of arguments it was never going to be allowed to send -- which is also
+    // a small oracle for the shape of an operation it cannot see.
     run: async (rawInput, context) => {
+      const allowed = authorise(context)
+      if (!allowed.ok) return allowed
       const parsed = parse(rawInput)
       if (!parsed.ok) return parsed
       return await execute(parsed.value, context)
+    },
+    runJson: async (rawInput, context) => {
+      const allowed = authorise(context)
+      if (!allowed.ok) return allowed
+      const parsed = parse(rawInput)
+      if (!parsed.ok) return parsed
+      return mapOk(await execute(parsed.value, context), spec.present)
     },
     preview:
       preview === undefined
         ? null
         : async (rawInput, context) => {
+            const allowed = authorise(context)
+            if (!allowed.ok) return allowed
             const parsed = parse(rawInput)
             if (!parsed.ok) return parsed
             return await preview(parsed.value, context)

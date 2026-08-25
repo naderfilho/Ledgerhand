@@ -1,5 +1,6 @@
 export * from './definition.js'
 export * from './registry.js'
+export * from './operations.js'
 export * as catalog from './catalog.js'
 export * as stock from './stock.js'
 export * as sales from './sales.js'
