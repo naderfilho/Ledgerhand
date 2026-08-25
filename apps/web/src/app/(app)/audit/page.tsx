@@ -1,6 +1,7 @@
 import { USE_CASES } from '@ledgerhand/domain'
 import { Bot, ScrollText, User } from 'lucide-react'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import type * as React from 'react'
 import { FilterTabs } from '@/components/app/search-field'
 import { Badge, type BadgeTone } from '@/components/ui/badge'
@@ -51,10 +52,14 @@ export default async function AuditPage({
   const session = await requireCapabilityOrRedirect('audit:read')
   const params = await searchParams
   const actor = typeof params['actor'] === 'string' ? params['actor'] : ''
+  // One agent run, from the id it stamped on everything it changed. This is
+  // the question the whole audit trail exists to answer.
+  const run = typeof params['run'] === 'string' ? params['run'] : ''
 
   const data = await query(async (context) => {
     const listed = await USE_CASES.list_domain_events.execute(
       {
+        ...(run === '' ? {} : { agentRunId: run }),
         ...(actor === 'user' || actor === 'agent' || actor === 'system'
           ? { actorKind: actor }
           : {}),
@@ -88,6 +93,25 @@ export default async function AuditPage({
         title="Audit trail"
         description="Every recorded fact, written in the same transaction as the change it describes. Nothing here can be edited or deleted -- the application role has no permission to."
       />
+
+      {run === '' ? null : (
+        <Card className="border-primary/40 bg-primary-subtle/40">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">
+                Everything agent run <span className="font-mono">{run.slice(0, 8)}</span> changed
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {data.total} event{data.total === 1 ? '' : 's'}, each one recorded in the same
+                transaction as the change, and each one still naming the person the agent acted for.
+              </p>
+            </div>
+            <Link href="/audit" className="text-sm font-medium text-primary hover:underline">
+              Show everything
+            </Link>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -136,7 +160,15 @@ export default async function AuditPage({
                       <Badge tone={AGGREGATE_TONE[event.aggregateType] ?? 'neutral'}>
                         {event.aggregateType.replace('_', ' ')}
                       </Badge>
-                      {event.agentRunId !== null ? <Badge tone="primary">agent run</Badge> : null}
+                      {event.agentRunId === null ? null : (
+                        <Link
+                          href={`/audit?run=${event.agentRunId}`}
+                          className="rounded-full"
+                          title="Show everything this run changed"
+                        >
+                          <Badge tone="primary">run {event.agentRunId.slice(0, 8)}</Badge>
+                        </Link>
+                      )}
                     </div>
                     {event.summary !== '' ? (
                       <p className="truncate font-mono text-xs text-muted-foreground">

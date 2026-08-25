@@ -1,5 +1,6 @@
 import {
   addDays,
+  asId,
   businessDateIn,
   isErr,
   quantityFromThousandths,
@@ -7,6 +8,7 @@ import {
   unitCostFromMillionths,
   unitPriceFromMillionths,
   USE_CASES,
+  type AgentRunId,
   type BusinessDate,
   type ExecutionContext,
   type Quantity,
@@ -14,6 +16,7 @@ import {
   type Sku,
   type UnitCost,
   type UnitPrice,
+  type UserId,
 } from '@ledgerhand/domain'
 import { sql } from 'drizzle-orm'
 import { randomUUID } from 'node:crypto'
@@ -179,6 +182,7 @@ async function main(): Promise<void> {
 
     await seedCatalogue(database, aurora, start)
     await seedHistory(database, aurora, start, today)
+    await seedAgentRun(database, aurora, today)
     await seedNorthwind(database, northwind, today)
 
     console.log('')
@@ -483,6 +487,86 @@ async function settleWhatIsDue(context: ExecutionContext, day: BusinessDate): Pr
       ),
     )
   }
+}
+
+/**
+ * One agent run, so the audit trail has something to show before anyone has
+ * run the agent.
+ *
+ * It does what the replenishment scenario expects of it: reads what is below
+ * minimum and drafts the orders, leaving them for a person to place. The
+ * actor is an agent borrowing the stock user's identity and role -- which is
+ * exactly how a real run reaches the database -- so the events carry both the
+ * run id and the person accountable for it.
+ */
+async function seedAgentRun(
+  database: ReturnType<typeof createDatabase>,
+  tenant: SeededTenant,
+  today: BusinessDate,
+): Promise<void> {
+  const stockUserId = tenant.userIds.get('stock')
+  if (stockUserId === undefined) return
+
+  console.log('Recording one agent run against the audit trail...')
+  const agentRunId = '3f6d9c22-2b4e-4a0f-9a1a-7c8f5b2d1e40'
+  const session: Session = {
+    ...systemSession(tenant.id, stockUserId),
+    role: 'stock',
+    actor: {
+      kind: 'agent',
+      userId: asId<UserId>(stockUserId),
+      agentRunId: asId<AgentRunId>(agentRunId),
+    },
+  }
+
+  await withUnitOfWork(
+    database.db,
+    session,
+    async (context) => {
+      const alerts = expect(
+        await USE_CASES.list_products_below_minimum.execute({}, context),
+        'listing products below minimum',
+      )
+      const suppliers = expect(
+        await USE_CASES.list_suppliers.execute(
+          { activeOnly: true, page: { limit: 20, offset: 0 } },
+          context,
+        ),
+        'listing suppliers',
+      )
+
+      const byPrefix = new Map<string, typeof alerts>()
+      for (const alert of alerts.slice(0, 6)) {
+        const prefix = alert.sku.slice(0, 3)
+        byPrefix.set(prefix, [...(byPrefix.get(prefix) ?? []), alert])
+      }
+
+      for (const [prefix, group] of byPrefix) {
+        const supplier = suppliers.rows[SUPPLIER_FOR_PREFIX[prefix] ?? 0] ?? suppliers.rows[0]
+        if (supplier === undefined) continue
+
+        attempt(
+          await USE_CASES.create_purchase_order.execute(
+            {
+              supplierId: supplier.id,
+              issuedOn: today,
+              notes: 'Drafted by the agent from the products below minimum.',
+              items: group.map((alert) => {
+                const seeded = SEED_PRODUCTS.find((candidate) => candidate.sku === alert.sku)
+                return {
+                  productId: alert.productId,
+                  quantity: parseQuantity(Number(alert.shortfall) / 1000 + 10),
+                  unitCost: parseCost(seeded?.cost ?? 10),
+                }
+              }),
+            },
+            context,
+          ),
+        )
+      }
+    },
+    { now: instantFor(today) },
+  )
 }
 
 async function seedNorthwind(
