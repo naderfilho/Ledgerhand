@@ -208,6 +208,63 @@ Every run is hermetic: the real agent loop, a real MCP client and server, and th
 
 The suite is the one part of this repository that costs money to run. CI runs it at k=1 on every push when the key is configured, publishes the table in the job summary, and fails the build if a guardrail breaks. **The rates are not filled in here yet.** They go in once the suite has been run against the model, and quoting a number before then would be the exact sin this suite exists to prevent.
 
+## The database
+
+Nineteen tables in **PostgreSQL 17**. The schema is declared in TypeScript with Drizzle and compiled to versioned SQL migrations; the row level security policies and the two database roles are hand written SQL, because that part should not be delegated to an ORM.
+
+```mermaid
+erDiagram
+  TENANTS ||--o{ USERS : "has"
+  TENANTS ||--o{ PRODUCTS : "owns every row"
+  CUSTOMERS ||--o{ SALES_ORDERS : "places"
+  SALES_ORDERS ||--o{ SALES_ORDER_ITEMS : "contains"
+  PRODUCTS ||--o{ SALES_ORDER_ITEMS : "is sold as"
+  SALES_ORDERS ||--o| FISCAL_DOCUMENTS : "is invoiced into"
+  SALES_ORDERS ||--o{ RECEIVABLES : "generates"
+  CUSTOMERS ||--o{ RECEIVABLES : "owes"
+  SUPPLIERS ||--o{ PURCHASE_ORDERS : "receives"
+  PURCHASE_ORDERS ||--o{ PURCHASE_ORDER_ITEMS : "contains"
+  PRODUCTS ||--o{ PURCHASE_ORDER_ITEMS : "is bought as"
+  PURCHASE_ORDERS ||--o{ PAYABLES : "generates"
+  SUPPLIERS ||--o{ PAYABLES : "is owed"
+  RECEIVABLES ||--o{ SETTLEMENTS : "is paid by"
+  PAYABLES ||--o{ SETTLEMENTS : "is paid by"
+  SETTLEMENTS }o--|| CASH_SESSIONS : "posts to"
+  PRODUCTS ||--|| STOCK_BALANCES : "has one"
+  PRODUCTS ||--o{ STOCK_MOVEMENTS : "records"
+```
+
+Four tables do not appear above because they serve the machinery rather than the business:
+
+| Table                 | Why it exists                                                                                                          |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `domain_events`       | The audit trail. Every change writes one in the same transaction, with the actor and, when an agent did it, the run id |
+| `number_sequences`    | Gap-free fiscal numbering. A counter row bumped inside the caller's transaction, not a Postgres `SEQUENCE`             |
+| `idempotency_records` | A key, the hash of the request and the stored response, written in the transaction that performed the effect           |
+| `stock_balances`      | The current position per product, kept beside the append-only movement log so a read does not replay history           |
+
+### The four decisions worth defending
+
+**Tenant isolation lives in the database.** Every business table carries `tenant_id`, has row level security enabled, and has a `tenant_isolation` policy comparing that column to `current_setting('app.tenant_id')`. The application connects as `ledgerhand_app`, a role with `BYPASSRLS = false` that owns nothing, so a bug in the code still cannot read another tenant's rows. A second role, `ledgerhand_auth`, may select from `users` and `tenants` and nothing else, because the sign-in lookup has to happen before the tenant is known. Five tests attack the isolation from five directions.
+
+**The tenant setting is transaction local.** `set_config('app.tenant_id', ..., true)` dies with the transaction rather than leaking into whoever borrows the pooled connection next. That is what keeps the isolation correct behind a transaction-mode pooler, which is exactly what a serverless deployment puts in front of the database.
+
+**Money is never a float.** Amounts are integers in fixed scale: cents for money, thousandths for quantities, millionths for unit prices. `numeric` columns round-trip as strings so no driver quietly turns 1234.50 into a binary approximation, and a property-based test asserts the instalments of an invoice always sum to exactly the order total.
+
+**The fiscal number cannot have gaps.** A Postgres `SEQUENCE` is faster and explicitly non-transactional, so a rolled back invoice would burn a number and leave a hole a tax authority does not accept. The counter is an ordinary row bumped with `UPDATE ... RETURNING` inside the caller's transaction: the row lock serialises concurrent invoicing, and a rollback takes the number back with it.
+
+### Where it runs
+
+In Docker, from `docker/compose.yml`, on both the demo path and the development path. There is no managed instance yet because there is no public deployment yet; everything reaches the database through `DATABASE_URL`, so moving to a hosted Postgres is a connection string rather than a rewrite.
+
+To look around inside it:
+
+```bash
+docker exec -it ledgerhand-postgres psql -U postgres -d ledgerhand
+```
+
+`\dt` lists the tables, `\d receivables` describes one, and `select * from pg_policies;` shows the isolation policies as the database sees them.
+
 ## Business rules the domain refuses to break
 
 Enforced in `packages/domain`, so the UI, the HTTP API and the MCP server all inherit them. Each has a test named after it.
