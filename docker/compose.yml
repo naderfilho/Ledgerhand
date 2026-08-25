@@ -1,0 +1,65 @@
+name: ledgerhand
+
+# ---------------------------------------------------------------------------
+# Two databases on purpose.
+#
+#   postgres       the one you develop against, on 5432, with your seed data
+#   postgres-test  a throwaway on 5433 that the integration and row level
+#                  security tests reset at will
+#
+# Keeping them apart means running the test suite never eats the demo data you
+# were about to record a GIF of.
+# ---------------------------------------------------------------------------
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ledgerhand-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ledgerhand
+      # Business dates are derived in the tenant timezone by the application;
+      # the server itself stays on UTC so nothing is ambiguous on the wire.
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ledgerhand']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres-test:
+    image: postgres:17-alpine
+    container_name: ledgerhand-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ledgerhand_test
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - '5433:5432'
+    # No volume: the test database is meant to be disposable, and starting from
+    # empty is faster than cleaning up after a failed run.
+    tmpfs:
+      - /var/lib/postgresql/data
+    command: >
+      postgres
+      -c fsync=off
+      -c synchronous_commit=off
+      -c full_page_writes=off
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d ledgerhand_test']
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
