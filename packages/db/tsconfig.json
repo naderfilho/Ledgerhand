@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_comment": "Type checking only, and it covers the tests and the config files that tsconfig.build.json deliberately leaves out. Emitting is tsconfig.build.json's job.",
+  "extends": "@ledgerhand/tsconfig/library.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "incremental": false,
+    "rootDir": "."
+  },
+  "include": ["src/**/*.ts", "*.config.ts", "drizzle.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}
