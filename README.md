@@ -5,7 +5,6 @@
 ![Next.js 16](https://img.shields.io/badge/Next.js_16-000000?logo=nextdotjs&logoColor=white)
 ![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL_17-4169E1?logo=postgresql&logoColor=white)
 ![Model Context Protocol](https://img.shields.io/badge/MCP-server-8A63D2)
-![Claude](https://img.shields.io/badge/Claude-Sonnet_5-D97757?logo=anthropic&logoColor=white)
 [![PolyForm Noncommercial License](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue)](LICENSE.md)
 
 **An ERP is the hard part. Letting an AI agent run it safely is the interesting part.**
