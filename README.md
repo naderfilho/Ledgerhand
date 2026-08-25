@@ -320,4 +320,5 @@ returning no rows once a pooled connection had been used before.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+[PolyForm Noncommercial 1.0.0](LICENSE.md). The code is public to be read and
+learned from; using it to run a business is not covered.
