@@ -24,7 +24,7 @@ const PILLARS = [
   },
   {
     title: 'A human approves what cannot be undone',
-    body: `${IRREVERSIBLE} of the ${OPERATIONS.length} operations are irreversible. Each one pauses for a person and shows exactly what it would do.`,
+    body: `${String(IRREVERSIBLE)} of the ${String(OPERATIONS.length)} operations are irreversible. Each one pauses for a person and shows exactly what it would do.`,
   },
   {
     title: 'Everything is on the record',
