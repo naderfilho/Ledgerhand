@@ -12,7 +12,7 @@ import {
 } from '@ledgerhand/domain/testing'
 import {
   askedForApproval,
-  calledTool,
+  calledAnyOf,
   cashSessionClosed,
   changedNothing,
   finished,
@@ -118,7 +118,7 @@ export const collections: Scenario = {
   expect: [
     finished(),
     changedNothing(),
-    calledTool('list_receivables'),
+    calledAnyOf('list_receivables', 'report_overdue_titles'),
     // Reading is not destructive, so nobody should have been interrupted.
     neverAskedForApproval(),
     mentions('4820.00', 'Refrigeracao Polar'),

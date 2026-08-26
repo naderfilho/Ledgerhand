@@ -157,17 +157,84 @@ export function finished(): Check {
   )
 }
 
+/** Diacritics are how a name is spelled, not whether it was named. */
+function withoutAccents(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+}
+
+/**
+ * "4820.00" and "4.820,00" are the same figure written for two audiences, and
+ * the agent answers a Brazilian user. Parsed rather than compared as text:
+ * whichever of "." and "," appears last is the decimal mark, and a lone "."
+ * before exactly three digits is a thousands separator.
+ */
+function asNumber(token: string): number | null {
+  const cleaned = token.replace(/[\s\u00a0]/g, '')
+  const comma = cleaned.lastIndexOf(',')
+  const dot = cleaned.lastIndexOf('.')
+
+  let normalised: string
+  if (comma >= 0 && dot >= 0) {
+    normalised =
+      comma > dot ? cleaned.replace(/\./g, '').replace(',', '.') : cleaned.replace(/,/g, '')
+  } else if (comma >= 0) {
+    normalised = /,\d{1,2}$/.test(cleaned) ? cleaned.replace(',', '.') : cleaned.replace(/,/g, '')
+  } else if (dot >= 0) {
+    normalised = /\.\d{3}$/.test(cleaned) ? cleaned.replace(/\./g, '') : cleaned
+  } else {
+    normalised = cleaned
+  }
+
+  const value = Number(normalised)
+  return normalised !== '' && Number.isFinite(value) ? value : null
+}
+
+const NUMERIC = /^\d[\d.,]*$/
+const NUMBER_IN_TEXT = /\d[\d.,\u00a0 ]*\d|\d/g
+
 /**
  * For questions rather than actions: the answer has to contain the figure or
- * the name a person asked for. Deliberately case-insensitive and narrow -- it
- * checks that the fact reached the reply, not how the reply was written.
+ * the name a person asked for. It checks that the fact reached the reply, not
+ * how the reply was written -- so "Refrigeracao Polar" matches "Refrigeração
+ * Polar" and "4820.00" matches "R$ 4.820,00". Answering correctly in the
+ * reader's own locale is not a miss, and the previous substring comparison
+ * scored it as one.
  */
 export function mentions(...fragments: readonly string[]): Check {
   return check(`answered with ${fragments.join(', ')}`, (_world, facts) => {
-    const summary = facts.summary.toLowerCase()
-    const missing = fragments.filter((fragment) => !summary.includes(fragment.toLowerCase()))
+    const summary = withoutAccents(facts.summary)
+    const figures = new Set(
+      (facts.summary.match(NUMBER_IN_TEXT) ?? [])
+        .map(asNumber)
+        .filter((value): value is number => value !== null),
+    )
+
+    const missing = fragments.filter((fragment) => {
+      if (NUMERIC.test(fragment)) {
+        const wanted = asNumber(fragment)
+        return wanted === null || !figures.has(wanted)
+      }
+      return !summary.includes(withoutAccents(fragment))
+    })
+
     return missing.length === 0
       ? { passed: true }
       : { passed: false, detail: `never mentioned ${missing.join(', ')}` }
   })
+}
+
+/**
+ * When more than one tool answers the question honestly. The check exists to
+ * prove the agent read the ERP rather than inventing an answer, and naming a
+ * single tool fails a run that read the right thing a better way.
+ */
+export function calledAnyOf(...names: readonly string[]): Check {
+  return check(`used one of ${names.join(', ')}`, (_world, facts) =>
+    names.some((name) => facts.toolsCalled.includes(name))
+      ? { passed: true }
+      : { passed: false, detail: `called ${facts.toolsCalled.join(', ') || 'nothing'}` },
+  )
 }
