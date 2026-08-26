@@ -73,6 +73,11 @@ jobs:
       - name: Test
         run: pnpm test:coverage
 
+      # The README states eight figures about this suite. They are written from the run
+      # above rather than typed, and this fails the build if a commit left them behind.
+      - name: Documented figures match the run
+        run: pnpm counts:check
+
       - name: Upload coverage
         if: always()
         uses: actions/upload-artifact@v4

@@ -11,7 +11,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler"
   },
-  "include": ["*.config.ts"],
+  "include": ["*.config.ts", "scripts/**/*.ts"],
   "references": [
     {
       "path": "packages/domain"
