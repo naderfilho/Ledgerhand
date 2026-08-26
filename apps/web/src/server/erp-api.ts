@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { createAuthLookup, withScope, type Session } from '@ledgerhand/db'
+import { createAuthLookup, withScope, type AuthLookup, type Session } from '@ledgerhand/db'
 import {
   asId,
   previewOperation,
@@ -14,6 +14,7 @@ import {
 } from '@ledgerhand/domain'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { database } from './context'
+import { connectionString } from './env'
 
 /**
  * ---------------------------------------------------------------------------
@@ -73,6 +74,23 @@ function bearer(request: Request): string | null {
   return token === '' ? null : token
 }
 
+/**
+ * One lookup for the process. Building it per request looks harmless, because
+ * it connects lazily -- but each one connects on its first query and nothing
+ * ever closes it, so a busy token endpoint leaves a trail of pools behind and
+ * eventually the database stops answering.
+ */
+let lookup: AuthLookup | null = null
+function accounts(): AuthLookup {
+  lookup ??= createAuthLookup(
+    connectionString(
+      'DATABASE_AUTH_URL',
+      'postgres://ledgerhand_auth:ledgerhand_auth@localhost:5432/ledgerhand',
+    ),
+  )
+  return lookup
+}
+
 export async function authenticate(request: Request): Promise<ApiCaller | null> {
   const token = bearer(request)
   if (token === null) return null
@@ -80,10 +98,7 @@ export async function authenticate(request: Request): Promise<ApiCaller | null> 
   const entry = configuredTokens().find((candidate) => matches(token, candidate.token))
   if (entry === undefined) return null
 
-  const accounts = createAuthLookup(
-    process.env['DATABASE_AUTH_URL'] ?? process.env['DATABASE_URL'] ?? '',
-  )
-  const account = await accounts.findActiveByEmail(entry.email)
+  const account = await accounts().findActiveByEmail(entry.email)
   if (account === null) return null
 
   return {

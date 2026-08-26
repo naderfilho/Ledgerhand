@@ -12,6 +12,7 @@ import {
   type UserId,
 } from '@ledgerhand/domain'
 import { createDatabase, withUnitOfWork, type DatabaseHandle, type Session } from '@ledgerhand/db'
+import { POOL_SIZE, connectionString } from './env'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { auth } from './auth'
@@ -49,9 +50,11 @@ let handle: DatabaseHandle | null = null
  */
 export function database(): DatabaseHandle {
   handle ??= createDatabase(
-    process.env['DATABASE_URL'] ??
+    connectionString(
+      'DATABASE_URL',
       'postgres://ledgerhand_app:ledgerhand_app@localhost:5432/ledgerhand',
-    { max: 10 },
+    ),
+    { max: POOL_SIZE },
   )
   return handle
 }

@@ -3,6 +3,7 @@ import { createAuthLookup, verifyPassword, type AuthLookup } from '@ledgerhand/d
 import NextAuth, { type NextAuthResult } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { z } from 'zod'
+import { connectionString } from './env'
 
 /**
  * ---------------------------------------------------------------------------
@@ -75,8 +76,10 @@ const credentialsSchema = z.object({
 let lookup: AuthLookup | null = null
 function accounts(): AuthLookup {
   lookup ??= createAuthLookup(
-    process.env['DATABASE_AUTH_URL'] ??
+    connectionString(
+      'DATABASE_AUTH_URL',
       'postgres://ledgerhand_auth:ledgerhand_auth@localhost:5432/ledgerhand',
+    ),
   )
   return lookup
 }
