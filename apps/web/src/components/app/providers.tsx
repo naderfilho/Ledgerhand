@@ -8,7 +8,7 @@ export function Providers({ children }: { readonly children: React.ReactNode }):
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="dark"
       enableSystem={false}
       storageKey="ledgerhand-theme"
       disableTransitionOnChange

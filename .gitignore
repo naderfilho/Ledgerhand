@@ -29,3 +29,6 @@ Thumbs.db
 
 # Written by `vercel link`: the project id and a pulled .env.local.
 .vercel
+
+# Agent tooling: how to launch the dev server, not part of the application.
+.claude/
