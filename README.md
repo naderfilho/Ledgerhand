@@ -104,6 +104,25 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Agent              | Claude over MCP, five budget limits, elicitation approvals, transcripts |
 | Eval suite         | 6 scenarios scored against the database: 3 guardrails, 3 capabilities   |
 
+### What deliberately does not exist
+
+Naming this is part of the claim. A trading ERP in Brazil is roughly half tax
+law, and that half is the part a portfolio project cannot honestly finish, so it
+is stubbed at a seam rather than half-built behind a convincing screen.
+
+| Not built               | Why                                                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| NF-e transmission       | Simulated. No certificate, no SEFAZ, no XML. The numbering seam is real -- see [ADR-0007](docs/adr/0007-simulated-fiscal-document.md) |
+| SPED / fiscal reporting | No EFD-ICMS/IPI, no EFD-Contribuicoes, no bookkeeping export                                                                          |
+| Tax calculation         | No ICMS, IPI, PIS/COFINS, ST or CFOP rules. A price is a price                                                                        |
+| Multi-currency          | One currency, integer cents. No rates, no revaluation                                                                                 |
+| Payroll                 | Not present, and not adjacent to the thesis                                                                                           |
+| Accounting ledger       | Receivables and payables, not a chart of accounts or double entry                                                                     |
+
+Everything above is a decision, not a backlog. The subject of this repository is
+the agent boundary, and shipping a plausible-looking tax engine that is wrong in
+ways only an accountant would catch would undermine that rather than extend it.
+
 ## Quickstart
 
 To look at it, one command and nothing installed but Docker:
