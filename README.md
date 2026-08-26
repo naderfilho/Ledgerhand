@@ -11,6 +11,10 @@
 
 A working ERP for a small trading company, an MCP server that exposes its operations as tools, and an agent that operates the business through those tools under guardrails the system enforces rather than requests in a prompt.
 
+![A tool that is never offered, an approval that is granted, and an approval that is refused](docs/demo.svg)
+
+<sub>Three scenarios from the eval suite, recorded end to end: the real agent loop, a real MCP client and server, and the real domain. The ticks under each act are that scenario's own checks reading the database afterwards, not a caption. Recorded with `pnpm --filter @ledgerhand/evals demo`; the pacing is the only authored part.</sub>
+
 The thesis: an agent is only useful in production when it has **per-tool permissions**, **human confirmation for destructive actions**, a **complete audit trail** and a **measured success rate**. Everything here exists to make those four things verifiable rather than claimed.
 
 Designed and built from scratch by **[Nader Filho](https://github.com/naderfilho)**.
