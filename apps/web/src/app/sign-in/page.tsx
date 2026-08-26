@@ -45,19 +45,19 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
     <div className="relative min-h-dvh overflow-hidden bg-background">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -left-32 size-[38rem] rounded-full bg-primary/12 blur-3xl"
+        className="pointer-events-none absolute -top-56 -left-40 size-[46rem] rounded-full bg-primary/25 blur-[120px]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute top-1/3 -right-40 size-[34rem] rounded-full bg-info/10 blur-3xl"
+        className="pointer-events-none absolute top-1/4 -right-48 size-[44rem] rounded-full bg-info/22 blur-[120px]"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-48 left-1/3 size-[30rem] rounded-full bg-primary/8 blur-3xl"
+        className="pointer-events-none absolute -bottom-56 left-[38%] size-[40rem] rounded-full bg-primary/16 blur-[130px]"
       />
 
       <div className="relative grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-        <section className="relative hidden flex-col justify-between p-10 lg:flex lg:border-r lg:border-border/60 lg:bg-gradient-to-br lg:from-surface-sunken/80 lg:via-surface-sunken/35 lg:to-transparent">
+        <section className="relative hidden flex-col justify-between p-10 lg:flex lg:bg-gradient-to-r lg:from-surface-sunken/70 lg:via-surface-sunken/25 lg:to-transparent">
           <div className="relative flex items-center gap-2.5">
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <svg viewBox="0 0 24 24" fill="none" className="size-4.5">
