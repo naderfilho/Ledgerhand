@@ -32,10 +32,23 @@ export interface ConnectionOptions {
   readonly debug?: boolean
 }
 
+/**
+ * A transaction pooler hands out a different backend for every statement, so
+ * two things that are free on a direct connection stop being free: a prepared
+ * statement is not there on the next round trip, and no session state survives.
+ * The first is this setting. The second the unit of work already respects,
+ * because `set_config(..., true)` was always transaction local -- which is why
+ * this deploys behind a pooler at all.
+ */
+function poolsPerTransaction(url: string): boolean {
+  return url.includes(':6543/') || url.includes('pgbouncer=true')
+}
+
 export function createDatabase(url: string, options: ConnectionOptions = {}): DatabaseHandle {
   const sql = postgres(url, {
     max: options.max ?? 10,
     connect_timeout: options.connectTimeoutSeconds ?? 10,
+    prepare: !poolsPerTransaction(url),
     // `numeric` must arrive as a string. Anything that parses it into a JS
     // number on the way in would defeat the entire fixed-point design.
     types: {
