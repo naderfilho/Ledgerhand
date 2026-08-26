@@ -26,3 +26,6 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Written by `vercel link`: the project id and a pulled .env.local.
+.vercel
