@@ -4,8 +4,18 @@ import { redirect } from 'next/navigation'
 import type * as React from 'react'
 import { SignInForm } from '@/components/app/sign-in-form'
 import { currentSession } from '@/server/context'
+import { USE_CASES } from '@ledgerhand/domain'
 
 export const metadata: Metadata = { title: 'Sign in' }
+
+/**
+ * Counted from the use cases themselves. The previous copy said "ten of the
+ * forty-one", which was right when it was written and wrong two use cases
+ * later. A claim about how many operations need a human is exactly the kind of
+ * number this repository argues should never be typed by hand.
+ */
+const OPERATIONS = Object.values(USE_CASES)
+const IRREVERSIBLE = OPERATIONS.filter((useCase) => useCase.risk === 'destructive').length
 
 const PILLARS = [
   {
@@ -14,7 +24,7 @@ const PILLARS = [
   },
   {
     title: 'A human approves what cannot be undone',
-    body: 'Ten of the forty-one operations are irreversible. Each one pauses for a person and shows exactly what it would do.',
+    body: `${IRREVERSIBLE} of the ${OPERATIONS.length} operations are irreversible. Each one pauses for a person and shows exactly what it would do.`,
   },
   {
     title: 'Everything is on the record',
