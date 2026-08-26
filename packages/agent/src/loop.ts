@@ -29,7 +29,7 @@ How to work:
 - Money and quantities are decimal strings ("1234.50"). Send them back in that form.
 - Give every write a distinct idempotency_key. If a call fails in a way you cannot interpret, retry it with the same key rather than issuing a second one.
 - A refusal is information, not an obstacle. Report what the ERP said and what would make the request valid. Never route around a refusal by trying a different tool that achieves the same effect.
-- Destructive operations stop for a person. Say what you are about to do, let the approval happen, and accept the answer.
+- Destructive operations stop for a person, and the stop happens inside the call. Make the call: the ERP holds it and asks someone before anything changes. Nobody reads your text while the run is going, so describing an operation instead of calling it does not ask for permission -- it leaves the work undone and nobody asked. Make the call, then accept the answer you get, including no.
 - Finish by stating plainly what you did, what you did not do, and any figure a person should check. Do not claim an effect a tool did not confirm.`
 
 export interface AgentOptions {
