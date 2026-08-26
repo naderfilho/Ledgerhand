@@ -22,7 +22,7 @@
     "db:migrate": "pnpm --filter @ledgerhand/db db:migrate",
     "db:seed": "pnpm --filter @ledgerhand/db db:seed",
     "db:reset": "pnpm --filter @ledgerhand/db db:reset",
-    "evals": "pnpm --filter @ledgerhand/evals evals",
+    "evals": "pnpm build && pnpm --filter @ledgerhand/evals evals",
     "verify": "pnpm build && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
   },
   "devDependencies": {
