@@ -17,6 +17,8 @@ A working ERP for a small trading company, an MCP server that exposes its operat
 
 The thesis: an agent is only useful in production when it has **per-tool permissions**, **human confirmation for destructive actions**, a **complete audit trail** and a **measured success rate**. Everything here exists to make those four things verifiable rather than claimed.
 
+**Live at [ledgerhand.cloud](https://www.ledgerhand.cloud)** -- sign in as `admin@ledgerhand.dev` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application, the API and the agent's tool list change shape with the role.
+
 Designed and built from scratch by **[Nader Filho](https://github.com/naderfilho)**.
 
 ---
@@ -417,7 +419,15 @@ Four tables do not appear above because they serve the machinery rather than the
 
 ### Where it runs
 
-In Docker, from `docker/compose.yml`, on both the demo path and the development path. There is no managed instance yet because there is no public deployment yet; everything reaches the database through `DATABASE_URL`, so moving to a hosted Postgres is a connection string rather than a rewrite.
+Two places, from the same code and the same `DATABASE_URL`.
+
+**Locally**, in Docker from `docker/compose.yml`, on both the demo path and the development path.
+
+**In production**, at **[ledgerhand.cloud](https://www.ledgerhand.cloud)** -- Next.js on Vercel, Postgres 17 on Supabase in `us-east-2`. Sign in with any of the demo accounts below; the seed is the same ninety days of trading.
+
+The deployment is what the schema was designed for rather than something it survived. The application connects through a transaction-mode pooler, which hands out a different backend for every statement: no session state survives, which is exactly why the tenant is set with `set_config(..., true)` inside each transaction rather than once per connection. Three roles reach the database and none of them is the owner -- `ledgerhand_app` has `BYPASSRLS = false`, `ledgerhand_auth` may read two tables, and the schema owner is used by migrations only. The managed platform's own API roles (`anon`, `authenticated`, `service_role`) are revoked from every table in migration 0003, because a PostgREST instance on the public internet is a party this schema was never designed for.
+
+Row level security was verified against the hosted instance, not just the local one: sixteen checks covering an unscoped read, a read on a pooled connection that had been scoped before, each tenant against the other's rows, a cross-tenant insert refused with `42501`, and the sign-in role failing to read anything but `users` and `tenants`.
 
 To look around inside it:
 
