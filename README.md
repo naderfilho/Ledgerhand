@@ -375,8 +375,11 @@ packages/domain      249 tests, 96.8% lines, 95.8% functions, 86.8% branches
 packages/mcp-server   25 tests, driven by a real MCP client over an in-memory transport
 packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         7 tests, proving the scoring catches an agent that lies
-packages/db          integration tests against Postgres 17: RLS, persistence,
-                     idempotency, agent attribution
+packages/db           20 tests, against a real Postgres 17: RLS, persistence,
+                      idempotency, agent attribution
+                     ---
+                     319 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 317 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:
