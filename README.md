@@ -305,7 +305,7 @@ Every run is hermetic: the real agent loop, a real MCP client and server, and th
 
 ### The rates
 
-`claude-sonnet-5`, k=3, eighteen runs, $0.64 of API credit, against the same English tasks the site shows.
+k=3, eighteen runs, $0.64 of API credit, against the same English tasks the site shows, on the model set in `AGENT_MODEL`. The rate belongs to that model: another one gives another number, which is why it is quoted with the k and not on its own.
 
 | Scenario                   | Kind       | Result     |
 | -------------------------- | ---------- | ---------- |

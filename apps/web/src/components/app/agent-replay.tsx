@@ -4,7 +4,7 @@ import { Brain, Check, Pause, Play, RotateCcw, ShieldAlert, Terminal, X } from '
 import * as React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { NeuralField } from '@/components/app/neural-field'
+import { NeuralBrain, type NeuralBrainState } from '@/components/app/neural-brain'
 import type { Beat, ReplayAct } from '@/lib/agent-replay'
 
 /**
@@ -133,6 +133,22 @@ export function AgentReplay({
   const callsSoFar = shown.filter((beat) => beat.kind === 'call').length
   const share = total === 0 ? 0 : Math.min(step / total, 1)
 
+  // The indicator is not decoration: it is this replay's own position, read as
+  // one of six things the agent can be doing.
+  const lastShown = shown[shown.length - 1]
+  const brainState: NeuralBrainState =
+    awaiting !== null
+      ? 'awaiting-approval'
+      : lastShown?.kind === 'approval' && !lastShown.approved
+        ? 'denied'
+        : finished
+          ? 'idle'
+          : !playing
+            ? 'idle'
+            : pending?.kind === 'call'
+              ? 'calling-tool'
+              : 'thinking'
+
   return (
     <div className="space-y-5">
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -160,9 +176,6 @@ export function AgentReplay({
       </div>
 
       <div className="relative overflow-hidden rounded-xl border border-border bg-surface">
-        {/* Something is working behind this, and the screen should say so. */}
-        <NeuralField columns={7} rows={3} intensity={finished ? 0.3 : playing ? 0.85 : 0.45} />
-
         <div className="relative flex flex-wrap items-start justify-between gap-4 border-b border-border p-4">
           <div className="min-w-0 space-y-1.5">
             <p className="text-sm text-muted-foreground">{act.subtitle}</p>
@@ -173,7 +186,13 @@ export function AgentReplay({
               <span className="text-foreground">{act.task}</span>
             </p>
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 items-center gap-2">
+            <NeuralBrain
+              state={brainState}
+              size={72}
+              pointCount={260}
+              className="hidden sm:block"
+            />
             <Button
               variant="secondary"
               onClick={() => {

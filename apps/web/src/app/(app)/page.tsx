@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import type * as React from 'react'
-import { NeuralField } from '@/components/app/neural-field'
+import { NeuralBrain } from '@/components/app/neural-brain'
 import { SalesTrend } from '@/components/app/sales-trend'
 import { StatCard } from '@/components/app/stat-card'
 import { Badge } from '@/components/ui/badge'
@@ -117,7 +117,6 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
        * it says is that the application is attached to something working, and
        * the link says where to go and watch that happen. */}
       <header className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
-        <NeuralField columns={8} rows={3} intensity={0.85} />
         <div className="relative flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl space-y-3">
             <p className="text-[0.6875rem] font-medium tracking-[0.14em] text-muted-foreground uppercase">
@@ -139,6 +138,12 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
+          <NeuralBrain
+            state="idle"
+            size={200}
+            pointCount={320}
+            className="hidden shrink-0 opacity-80 lg:block"
+          />
           {data.cash !== null ? (
             <Badge tone={data.cash.status === 'open' ? 'info' : 'neutral'}>
               Cash {data.cash.status === 'not_opened' ? 'not opened' : data.cash.status}

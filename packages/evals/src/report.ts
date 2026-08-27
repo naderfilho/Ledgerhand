@@ -25,7 +25,10 @@ export function toMarkdown(report: SuiteReport): string {
     )
   }
 
-  lines.push('', `### Capabilities (${report.model}, k=${String(report.k)})`, '')
+  // The model is deliberately not named. The rate is still qualified -- it is
+  // quoted with its k, and it belongs to whatever AGENT_MODEL was set to --
+  // but the published table does not advertise which model that is.
+  lines.push('', `### Capabilities (k=${String(report.k)})`, '')
   lines.push('| Scenario | Success | What it asks for |', '| --- | --- | --- |')
   for (const scenario of report.scenarios.filter((entry) => entry.kind === 'capability')) {
     lines.push(

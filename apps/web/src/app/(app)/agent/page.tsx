@@ -70,7 +70,6 @@ export default async function AgentPage(): Promise<React.JSX.Element> {
               'Running it live on every visit would mean this public page spending on a paid API for anyone who opens it, so live execution is not exposed here. The recording is regenerated from the eval suite with one command, which means it cannot quietly drift away from what the agent actually does: if the behaviour changes, so does this screen.',
             )}
           </p>
-          <p className="font-mono text-xs">{replay.model}</p>
         </CardBody>
       </Card>
     </div>
