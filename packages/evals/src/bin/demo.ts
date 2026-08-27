@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { writeFileSync } from 'node:fs'
 import { runScenario, type ScenarioRun } from '../runner.js'
 import { scenarioNamed } from '../scenarios/index.js'
+import { narrate } from '../narration.js'
 import type { Scenario } from '../scenario.js'
 
 /**
@@ -17,7 +18,8 @@ import type { Scenario } from '../scenario.js'
  * database afterwards. Only the pacing is authored, so a reader can follow it.
  *
  * Render it with:
- *   npx svg-term-cli --in demo.cast --out docs/demo.svg --window --width 100
+ *   npx -p svg-term-cli svg-term --in demo.cast --out docs/demo.svg \
+ *     --window --width 124 --height 40
  */
 
 const DIM = '\u001b[2m'
@@ -91,6 +93,22 @@ class Cast {
   }
 }
 
+/** Wide enough for the longest tool name these three acts call. */
+const TOOL_COLUMN = 32
+
+/**
+ * The terminal these frames are played back in. The summary is clipped to fit
+ * one line of it rather than to a round number: a line that wraps in an image
+ * wraps by character, and a showcase that splits a word down the middle reads
+ * as an accident rather than a decision.
+ */
+const WIDTH = 124
+const SUMMARY_LIMIT = WIDTH - 6
+
+function pad(text: string, width: number): string {
+  return text.length >= width ? `${text} ` : text + ' '.repeat(width - text.length)
+}
+
 function verdict(run: ScenarioRun): readonly string[] {
   return run.checks.map((check) =>
     check.passed
@@ -155,14 +173,28 @@ async function main(): Promise<void> {
       },
     })
 
-    for (const call of seen) cast.line(`    ${DIM}${call}${RESET}`, 0.45)
+    // Two columns, headed the way the agent screen heads them: the call the
+    // model made, and what that call means to somebody who has never read the
+    // schema. The sentences come from the same table the site reads, so the
+    // image cannot drift into describing a run differently from the app.
+    cast.line(`    ${DIM}${pad('backstage', TOOL_COLUMN)}what is happening${RESET}`, 0.5)
+    for (const call of seen) {
+      const tool = call.replace(/^→\s*/, '')
+      cast.line(
+        `    ${CYAN}→${RESET} ${pad(tool, TOOL_COLUMN - 2)}${DIM}${narrate(tool, 'en')}${RESET}`,
+        0.45,
+      )
+    }
     cast.line()
 
     const stopped = approvalLine(run)
     if (stopped !== null) cast.line(stopped, 1.0)
 
     const summary = run.facts.summary.replace(/\s+/g, ' ').trim()
-    cast.line(`  ${DIM}${summary.slice(0, 150)}${summary.length > 150 ? '...' : ''}${RESET}`, 1.0)
+    cast.line(
+      `  ${DIM}${summary.slice(0, SUMMARY_LIMIT)}${summary.length > SUMMARY_LIMIT ? '...' : ''}${RESET}`,
+      1.0,
+    )
     cast.line()
     for (const check of verdict(run)) cast.line(check, 0.3)
     cast.line('', 1.4)
@@ -176,7 +208,7 @@ async function main(): Promise<void> {
 
   // eslint-disable-next-line no-restricted-syntax -- the recording's wall clock
   const timestamp = Math.floor(Date.now() / 1000)
-  writeFileSync(out, `${cast.toAsciicast(102, 34, timestamp)}\n`)
+  writeFileSync(out, `${cast.toAsciicast(WIDTH, 40, timestamp)}\n`)
   process.stderr.write(`\nWrote ${out}\n`)
 }
 

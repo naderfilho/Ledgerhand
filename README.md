@@ -13,7 +13,7 @@ A working ERP for a trading company, an MCP server that exposes its operations a
 
 ![A tool that is never offered, an approval that is granted, and an approval that is refused](docs/demo.svg)
 
-<sub>Three scenarios from the eval suite, recorded end to end: the real agent loop, a real MCP client and server, and the real domain. The ticks under each act are that scenario's own checks reading the database afterwards, not a caption. Recorded with `pnpm --filter @ledgerhand/evals demo`; the pacing is the only authored part.</sub>
+<sub>Three scenarios from the eval suite, recorded end to end: the real agent loop, a real MCP client and server, and the real domain. Each call the model made sits beside what it means to somebody who has never read the schema -- backstage and what is happening, from the same table the agent screen reads, so the image cannot describe a run differently from the application. The ticks under each act are that scenario's own checks reading the database afterwards, not a caption. Recorded with `pnpm --filter @ledgerhand/evals demo`; the pacing is the only authored part.</sub>
 
 The thesis: an agent is only useful in production when it has **per-tool permissions**, **human confirmation for destructive actions**, a **complete audit trail** and a **measured success rate**. Everything here exists to make those four things verifiable rather than claimed.
 
