@@ -1,5 +1,9 @@
+import type { Metadata } from 'next'
 import type * as React from 'react'
 import { Landing } from '@/components/site/landing'
+import { landingMetadata } from '@/components/site/metadata'
+
+export const metadata: Metadata = landingMetadata('pt')
 
 /**
  * The same page in Portuguese, at its own URL.

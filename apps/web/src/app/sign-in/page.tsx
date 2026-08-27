@@ -1,6 +1,6 @@
-import { USE_CASES } from '@ledgerhand/domain'
 import { Code2 } from 'lucide-react'
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type * as React from 'react'
 import { AgentGlimpse } from '@/components/app/agent-glimpse'
@@ -9,22 +9,14 @@ import { Logo } from '@/components/app/logo'
 import { SignInForm } from '@/components/app/sign-in-form'
 import { Wordmark } from '@/components/app/wordmark'
 import { replayFor } from '@/lib/agent-replay'
-import { CALLBACK_PARAM, safeCallbackUrl } from '@/lib/routes'
+import { DESTRUCTIVE_COUNT, OPERATION_COUNT } from '@/lib/operations'
+import { CALLBACK_PARAM, LANDING_PATHS, safeCallbackUrl } from '@/lib/routes'
 import { currentSession } from '@/server/context'
 import { currentTranslator } from '@/server/locale'
 
 export const metadata: Metadata = { title: 'Sign in' }
 
 const REPOSITORY = 'https://github.com/naderfilho/Ledgerhand'
-
-/**
- * Counted from the use cases themselves. The previous copy said "ten of the
- * forty-one", which was right when it was written and wrong two use cases
- * later. A claim about how many operations need a human is exactly the kind of
- * number this repository argues should never be typed by hand.
- */
-const OPERATIONS = Object.values(USE_CASES)
-const IRREVERSIBLE = OPERATIONS.filter((useCase) => useCase.risk === 'destructive').length
 
 const PILLARS = [
   {
@@ -33,7 +25,7 @@ const PILLARS = [
   },
   {
     title: 'A human approves what cannot be undone',
-    body: `${String(IRREVERSIBLE)} of the ${String(OPERATIONS.length)} operations are irreversible. Each one pauses for a person and shows exactly what it would do.`,
+    body: `${String(DESTRUCTIVE_COUNT)} of the ${String(OPERATION_COUNT)} operations are irreversible. Each one pauses for a person and shows exactly what it would do.`,
   },
   {
     title: 'Everything is on the record',
@@ -113,14 +105,14 @@ export default async function SignInPage({
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <a
-              href={`${REPOSITORY}#the-part-that-is-not-an-erp`}
-              target="_blank"
-              rel="noreferrer"
+            {/* The public page, not the README on GitHub. It carries the same
+                argument and is one navigation away rather than a tab away. */}
+            <Link
+              href={LANDING_PATHS[lang]}
               className="hidden h-9 items-center rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground sm:flex"
             >
               {t('How it works')}
-            </a>
+            </Link>
             <LanguageToggle lang={lang} />
             <a
               href={REPOSITORY}
