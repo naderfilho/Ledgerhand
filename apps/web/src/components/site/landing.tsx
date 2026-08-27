@@ -125,6 +125,10 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
 
   return (
     <div className="relative min-h-dvh overflow-x-clip bg-background">
+      {/* Hoisted into <head> by React, so the recording starts downloading with
+          the document instead of when the parser reaches the <img>. That head
+          start is most of the LCP budget on a slow connection. */}
+      <link rel="preload" as="image" href={demo.src} fetchPriority="high" />
       {/* The same atmosphere as the sign-in screen, clipped to its own box so
        * the glows cannot add scrollable nothing under the footer. */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">

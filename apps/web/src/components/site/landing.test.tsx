@@ -59,9 +59,13 @@ describe('the landing page', () => {
   })
 
   it('preloads the recording, which is the largest thing on the page', () => {
-    // React hoists a `<link rel="preload">` out of an image marked high
-    // priority, so the fetch starts with the document rather than after the
-    // parser reaches the tag. That head start is the LCP budget.
+    // The link is rendered rather than asked for, and the difference cost a
+    // deployment to learn. This test first looked for a preload that
+    // `renderToStaticMarkup` hoists out of an `<img fetchPriority="high">` on
+    // its own -- so it stayed green while the App Router, which is the renderer
+    // that actually ships, emitted none and production had no image preload at
+    // all. `preload()` from react-dom did not reach the head either. A rendered
+    // `<link>` does, verified against the HTML a real `next start` serves.
     expect(english()).toMatch(/<link rel="preload" as="image"[^>]+fetchPriority="high"/)
   })
 
