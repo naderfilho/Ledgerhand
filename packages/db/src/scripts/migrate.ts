@@ -1,3 +1,4 @@
+import { loadRepositoryEnvironment } from './environment.js'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { fileURLToPath } from 'node:url'
@@ -53,6 +54,7 @@ async function rotateRolePasswords(sql: Sql): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const url = process.env['DATABASE_ADMIN_URL']
   if (url === undefined || url === '') {
     throw new Error('DATABASE_ADMIN_URL is not set. Copy .env.example to .env first.')

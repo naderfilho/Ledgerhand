@@ -1,3 +1,4 @@
+import { loadRepositoryEnvironment } from './environment.js'
 import postgres from 'postgres'
 
 /**
@@ -6,6 +7,7 @@ import postgres from 'postgres'
  * database" is the one command nobody wants to fire at the wrong host.
  */
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const url = process.env['DATABASE_ADMIN_URL']
   if (url === undefined || url === '') {
     throw new Error('DATABASE_ADMIN_URL is not set.')

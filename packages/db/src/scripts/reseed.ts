@@ -1,3 +1,4 @@
+import { loadRepositoryEnvironment } from './environment.js'
 import postgres from 'postgres'
 
 /**
@@ -24,6 +25,7 @@ import postgres from 'postgres'
 const LOCAL_HOSTS = ['localhost', '127.0.0.1', 'postgres', 'db', 'host.docker.internal']
 
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const url = process.env['DATABASE_ADMIN_URL']
   if (url === undefined || url === '') {
     throw new Error('DATABASE_ADMIN_URL is not set.')

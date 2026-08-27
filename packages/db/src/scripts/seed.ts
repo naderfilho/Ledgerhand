@@ -1,3 +1,4 @@
+import { loadRepositoryEnvironment } from './environment.js'
 import {
   addDays,
   asId,
@@ -143,6 +144,7 @@ async function createTenant(
 type SeededRole = (typeof SEED_USERS)[number]['role']
 
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const url = process.env['DATABASE_ADMIN_URL']
   if (url === undefined || url === '') {
     throw new Error('DATABASE_ADMIN_URL is not set. Copy .env.example to .env first.')
