@@ -168,6 +168,8 @@ docker compose -f docker/compose.yml up -d postgres-test
 
 Without it they skip and say so, so `pnpm test` still works on a machine with no Docker.
 
+What the build enforces but the code does not say out loud -- which figures are counted rather than typed, which sentences are compared against this file, which package may not import which -- is in [`AGENTS.md`](AGENTS.md). It is worth ten minutes before the first change.
+
 ## Architecture
 
 ```mermaid
