@@ -1,0 +1,88 @@
+name: Demo reseed
+
+# The demo signs anybody in as an administrator, which is the point and also
+# the problem: the first visitor who cancels every order leaves a broken shop
+# for the next one. This puts the shop back every night.
+#
+# 06:00 UTC is 03:00 in Sao Paulo and before the working day anywhere else the
+# traffic comes from, so nobody is mid-visit when the tables go empty.
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+# Two of these at once would empty the tables a third of the way through the
+# other one's seed. A manual run therefore waits for the nightly one rather
+# than racing it -- and is never cancelled halfway, which would leave the demo
+# with no data at all until tomorrow.
+concurrency:
+  group: demo-reseed
+  cancel-in-progress: false
+
+jobs:
+  reseed:
+    name: Empty and seed again
+    # A fork inherits the schedule but not the secrets, so this would fail
+    # every night for somebody who only wanted to read the code.
+    if: github.repository == 'naderfilho/Ledgerhand'
+    runs-on: ubuntu-latest
+    # The seed simulates a quarter of trading through the real use cases, one
+    # transaction at a time, so it is bounded by round trips rather than by
+    # work. From a runner that is minutes; from a laptop in Brazil it was 45.
+    timeout-minutes: 40
+
+    env:
+      DATABASE_ADMIN_URL: ${{ secrets.DATABASE_ADMIN_URL }}
+      # reseed.ts refuses to empty anything that is not on localhost unless it
+      # is told, in as many words, that this database is meant to be emptied.
+      LEDGERHAND_ALLOW_REMOTE_RESET: 'yes'
+      # SEED_PASSWORD is left at its default on purpose. The demo password is
+      # printed on the sign-in page; putting it in a secret as well would only
+      # make it possible for the two to drift apart.
+
+    steps:
+      # Not a soft skip, which is what the eval job does when a fork has no
+      # model key. A scheduled chore that quietly does nothing is worse than
+      # one that fails: the demo would rot for weeks behind a green tick.
+      - name: A database must be configured
+        if: env.DATABASE_ADMIN_URL == ''
+        run: |
+          echo "::error::DATABASE_ADMIN_URL is not set. Add it with:"
+          echo "::error::gh secret set DATABASE_ADMIN_URL --repo ${{ github.repository }}"
+          exit 1
+
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # The seed drives the domain's own use cases rather than writing rows, so
+      # it needs the workspace packages built first.
+      - name: Build
+        run: pnpm build
+
+      - name: Empty the demo data
+        run: pnpm db:reseed
+
+      # If the truncate succeeded and this step fails, the site is left empty
+      # and the red run is how anybody finds out. That is the intended
+      # behaviour: a silent half-reseed would look exactly like a working demo
+      # that nobody has bought anything from yet.
+      - name: Seed it again
+        run: pnpm db:seed
+
+      - name: Report
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "The demo at https://ledgerhand.cloud was emptied and seeded again." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The reseed failed. The demo may be empty until the next run succeeds." >> "$GITHUB_STEP_SUMMARY"
+          fi

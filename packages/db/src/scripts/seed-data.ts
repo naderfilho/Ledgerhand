@@ -24,17 +24,62 @@ export interface SeedParty {
 }
 
 export interface SeedUser {
+  readonly id: string
   readonly email: string
   readonly name: string
   readonly role: Role
 }
 
+/**
+ * The tenants and the people in them are given fixed identifiers rather than
+ * fresh ones, because the demo is periodically emptied and seeded again. A
+ * signed-in visitor carries their user and tenant id in a cookie the reseed
+ * cannot reach; with new ids every time, that cookie would survive the reseed
+ * pointing at a tenant that no longer exists, and row level security would
+ * answer every query with an empty result -- a working session looking at an
+ * empty company. Stable ids make the reseed invisible to whoever is mid-visit.
+ *
+ * They are deliberately unmistakable. A UUID like this one in a log or a bug
+ * report is demo data, and says so at a glance.
+ */
+export const SEED_TENANT_IDS = {
+  aurora: 'a0000000-0000-4000-8000-000000000001',
+  northwind: 'a0000000-0000-4000-8000-000000000002',
+} as const
+
+export const NORTHWIND_ADMIN_ID = 'b0000000-0000-4000-8000-000000000009'
+
 export const SEED_USERS: readonly SeedUser[] = [
-  { email: 'guest@ledgerhand.cloud', name: 'Guest', role: 'admin' },
-  { email: 'sales@ledgerhand.cloud', name: 'Bruno Carvalho', role: 'sales' },
-  { email: 'finance@ledgerhand.cloud', name: 'Carla Domingues', role: 'finance' },
-  { email: 'stock@ledgerhand.cloud', name: 'Diego Estevam', role: 'stock' },
-  { email: 'readonly@ledgerhand.cloud', name: 'Elena Fontes', role: 'readonly' },
+  {
+    id: 'b0000000-0000-4000-8000-000000000001',
+    email: 'guest@ledgerhand.cloud',
+    name: 'Guest',
+    role: 'admin',
+  },
+  {
+    id: 'b0000000-0000-4000-8000-000000000002',
+    email: 'sales@ledgerhand.cloud',
+    name: 'Bruno Carvalho',
+    role: 'sales',
+  },
+  {
+    id: 'b0000000-0000-4000-8000-000000000003',
+    email: 'finance@ledgerhand.cloud',
+    name: 'Carla Domingues',
+    role: 'finance',
+  },
+  {
+    id: 'b0000000-0000-4000-8000-000000000004',
+    email: 'stock@ledgerhand.cloud',
+    name: 'Diego Estevam',
+    role: 'stock',
+  },
+  {
+    id: 'b0000000-0000-4000-8000-000000000005',
+    email: 'readonly@ledgerhand.cloud',
+    name: 'Elena Fontes',
+    role: 'readonly',
+  },
 ]
 
 export const SEED_SUPPLIERS: readonly SeedParty[] = [

@@ -19,15 +19,16 @@ import {
   type UserId,
 } from '@ledgerhand/domain'
 import { sql } from 'drizzle-orm'
-import { randomUUID } from 'node:crypto'
 import { createDatabase } from '../client.js'
 import { hashPassword } from '../password.js'
 import { tenants, users } from '../schema/index.js'
 import { systemSession, withUnitOfWork, type Session } from '../unit-of-work.js'
 import {
+  NORTHWIND_ADMIN_ID,
   SEED_CUSTOMERS,
   SEED_PRODUCTS,
   SEED_SUPPLIERS,
+  SEED_TENANT_IDS,
   SEED_USERS,
   SUPPLIER_FOR_PREFIX,
 } from './seed-data.js'
@@ -104,12 +105,12 @@ interface SeededTenant {
 
 async function createTenant(
   database: ReturnType<typeof createDatabase>,
+  tenantId: string,
   name: string,
   slug: string,
   password: string,
-  people: readonly { email: string; name: string; role: SeededRole }[],
+  people: readonly { id: string; email: string; name: string; role: SeededRole }[],
 ): Promise<SeededTenant> {
-  const tenantId = randomUUID()
   const userIds = new Map<string, string>()
 
   await database.db.transaction(async (tx) => {
@@ -121,10 +122,9 @@ async function createTenant(
       .values({ id: tenantId, name, slug, timeZone: TIME_ZONE, currency: 'BRL' })
 
     for (const person of people) {
-      const id = randomUUID()
-      userIds.set(person.role, id)
+      userIds.set(person.role, person.id)
       await tx.insert(users).values({
-        id,
+        id: person.id,
         tenantId,
         email: person.email,
         name: person.name,
@@ -160,10 +160,16 @@ async function main(): Promise<void> {
     console.log('Creating tenants and users...')
     const aurora = await createTenant(
       database,
+      SEED_TENANT_IDS.aurora,
       'Aurora Trading Co.',
       'aurora',
       password,
-      SEED_USERS.map((user) => ({ email: user.email, name: user.name, role: user.role })),
+      SEED_USERS.map((user) => ({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      })),
     )
 
     // A second tenant with its own data. It exists so the row level security
@@ -171,10 +177,18 @@ async function main(): Promise<void> {
     // multi-tenant rather than multi-tenant-shaped.
     const northwind = await createTenant(
       database,
+      SEED_TENANT_IDS.northwind,
       'Northwind Supplies Ltd',
       'northwind',
       password,
-      [{ email: 'admin@northwind.dev', name: 'Frank Oliveira', role: 'admin' }],
+      [
+        {
+          id: NORTHWIND_ADMIN_ID,
+          email: 'admin@northwind.dev',
+          name: 'Frank Oliveira',
+          role: 'admin',
+        },
+      ],
     )
 
     const today = businessDateIn(new Date(), TIME_ZONE)
