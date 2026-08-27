@@ -69,6 +69,36 @@ with an `eslint-disable-next-line` and a reason; nothing else may.
 quantities, millionths for unit prices, all as scaled `bigint`. See
 [ADR-0003](docs/adr/0003-fixed-point-arithmetic.md).
 
+## A green suite is not evidence about the page
+
+The tests here render components through `renderToStaticMarkup`, which is not
+the renderer that serves them. Where the two can differ -- what gets hoisted
+into `<head>`, what streams, what metadata resolves to, which headers come back
+-- **a passing test says the test renderer agrees with itself.** The served
+bytes are the evidence.
+
+This is not hypothetical. The public page claimed an image preload for its LCP
+budget, asserted it, and shipped without one for a whole deployment:
+`renderToStaticMarkup` hoists a `<link rel="preload">` out of an
+`<img fetchPriority="high">` on its own and the App Router does not, so the
+assertion was against a string production never produced. It was found by
+reading the HTML the deployment serves. The same reading showed the fonts are
+not preloaded in production either, which had quietly made a performance
+analysis wrong in the other direction.
+
+So: after a change to anything that lives in the document rather than in the
+component tree, fetch the page from a real `next start` -- or from the
+deployment -- and read it.
+
+```bash
+curl -s http://localhost:3000/ | grep -o '<link[^>]*>'
+```
+
+The repository already argues this everywhere else. `packages/evals` scores the
+database rather than the agent's account of itself, for exactly the reason a
+test suite should not be the only witness to its own correctness. See
+[ADR-0012](docs/adr/0012-evals-score-the-database.md).
+
 ## The eval suite costs real money
 
 `packages/evals` is the only thing here that calls a paid API. Everything else
