@@ -24,7 +24,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/scripts/migrate.ts",
     "db:seed": "tsx src/scripts/seed.ts",
-    "db:reset": "tsx src/scripts/reset.ts"
+    "db:reset": "tsx src/scripts/reset.ts",
+    "db:reseed": "tsx src/scripts/reseed.ts"
   },
   "dependencies": {
     "@ledgerhand/domain": "workspace:*",
