@@ -305,7 +305,7 @@ Every run is hermetic: the real agent loop, a real MCP client and server, and th
 
 ### The rates
 
-`claude-sonnet-5`, k=3, eighteen runs, $0.65 of API credit.
+`claude-sonnet-5`, k=3, eighteen runs, $0.64 of API credit, against the same English tasks the site shows.
 
 | Scenario                   | Kind       | Result     |
 | -------------------------- | ---------- | ---------- |
@@ -423,11 +423,15 @@ Two places, from the same code and the same `DATABASE_URL`.
 
 **Locally**, in Docker from `docker/compose.yml`, on both the demo path and the development path.
 
-**In production**, at **[ledgerhand.cloud](https://www.ledgerhand.cloud)** -- Next.js on Vercel, Postgres 17 on Supabase in `us-east-2`. Sign in with any of the demo accounts below; the seed is the same ninety days of trading.
+**In production**, at **[ledgerhand.cloud](https://www.ledgerhand.cloud)** -- Next.js on Vercel, Postgres 17 on Supabase in `us-east-2`. Sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application change shape with the role. The interface is in English with a Portuguese switch in the header, and so is the agent screen -- including the recordings, because each language plays a run really made in it.
+
+**The agent screen is the one worth opening.** Fifteen recorded runs, three of them guardrails: a tool that is never offered, a person who approves, a person who refuses, nobody available to answer, and eleven ordinary jobs from every corner of the business. Each act shows what the model asked for beside what the system allowed, and the verdicts underneath are the scenario's own checks reading the database after the run. It is a replay rather than a live agent because a public page that spends on a paid API for every visitor is a page that gets turned off; `pnpm --filter @ledgerhand/evals record-replay` regenerates it, so it cannot drift from what the agent actually does.
 
 The deployment is what the schema was designed for rather than something it survived. The application connects through a transaction-mode pooler, which hands out a different backend for every statement: no session state survives, which is exactly why the tenant is set with `set_config(..., true)` inside each transaction rather than once per connection. Three roles reach the database and none of them is the owner -- `ledgerhand_app` has `BYPASSRLS = false`, `ledgerhand_auth` may read two tables, and the schema owner is used by migrations only. The managed platform's own API roles (`anon`, `authenticated`, `service_role`) are revoked from every table in migration 0003, because a PostgREST instance on the public internet is a party this schema was never designed for.
 
 Row level security was verified against the hosted instance, not just the local one: sixteen checks covering an unscoped read, a read on a pooled connection that had been scoped before, each tenant against the other's rows, a cross-tenant insert refused with `42501`, and the sign-in role failing to read anything but `users` and `tenants`.
+
+`db:reset` drops and recreates the schema, which only works where the migration role owns it. On a managed instance the schema belongs to the platform, so `db:reseed` empties the tables with `TRUNCATE` instead: it removes demo data and never structure, which is what makes it safe to point at a deployment.
 
 To look around inside it:
 
