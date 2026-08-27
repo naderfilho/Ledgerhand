@@ -4,7 +4,7 @@ import type { Prompt, PromptMessage } from '@modelcontextprotocol/sdk/types.js'
  * ---------------------------------------------------------------------------
  * Prompts
  * ---------------------------------------------------------------------------
- * The four routines a small trading company actually runs. They exist so the
+ * The four routines a trading company actually runs. They exist so the
  * procedure lives in the server, where it can be reviewed and versioned, and
  * not in whatever the operator typed into a chat window that afternoon.
  *

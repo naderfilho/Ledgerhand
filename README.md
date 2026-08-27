@@ -9,7 +9,7 @@
 
 **An ERP is the hard part. Letting an AI agent run it safely is the interesting part.**
 
-A working ERP for a small trading company, an MCP server that exposes its operations as tools, and an agent that operates the business through those tools under guardrails the system enforces rather than requests in a prompt.
+A working ERP for a trading company, an MCP server that exposes its operations as tools, and an agent that operates the business through those tools under guardrails the system enforces rather than requests in a prompt.
 
 ![A tool that is never offered, an approval that is granted, and an approval that is refused](docs/demo.svg)
 

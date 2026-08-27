@@ -7,12 +7,18 @@ import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { signInAction, type SignInState } from '@/server/actions/session'
 
+// The notes are the capability table in shorthand, not a vibe. Each one names
+// the thing the role is refused, because that is the part worth reading.
 const DEMO_ACCOUNTS = [
-  { role: 'admin', email: 'guest@ledgerhand.cloud', note: 'everything' },
-  { role: 'sales', email: 'sales@ledgerhand.cloud', note: 'orders, no money' },
-  { role: 'finance', email: 'finance@ledgerhand.cloud', note: 'money, no warehouse' },
-  { role: 'stock', email: 'stock@ledgerhand.cloud', note: 'warehouse and purchasing' },
-  { role: 'readonly', email: 'readonly@ledgerhand.cloud', note: 'looks, touches nothing' },
+  { role: 'admin', email: 'guest@ledgerhand.cloud', note: 'everything, audit log included' },
+  { role: 'sales', email: 'sales@ledgerhand.cloud', note: 'sells and cancels, cannot invoice' },
+  { role: 'finance', email: 'finance@ledgerhand.cloud', note: 'invoices, settles, closes the day' },
+  { role: 'stock', email: 'stock@ledgerhand.cloud', note: 'warehouse, purchasing, catalogue' },
+  {
+    role: 'readonly',
+    email: 'readonly@ledgerhand.cloud',
+    note: 'reads everything, writes nothing',
+  },
 ] as const
 
 export function SignInForm(): React.JSX.Element {
@@ -86,8 +92,9 @@ export function SignInForm(): React.JSX.Element {
           ))}
         </ul>
         <p className="px-2 text-[0.6875rem] text-muted-foreground">
-          Each role sees a different application. That is the point: the agent borrows one of these
-          identities and inherits exactly its permissions.
+          The agent signs in as whichever account you pick and gets exactly its permissions. Ask the
+          sales agent to invoice an order and it cannot: the tool was never offered to it. The
+          system refuses, not the prompt.
         </p>
       </div>
     </div>

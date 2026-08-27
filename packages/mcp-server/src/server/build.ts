@@ -45,7 +45,7 @@ import { PREVIEW_TOOL, previewTool, splitArguments, toMcpTool } from './tools.js
  *     domain's own description of the effect.
  */
 
-const INSTRUCTIONS = `Ledgerhand is a small trading company's ERP: catalogue, stock, sales, purchasing and finance.
+const INSTRUCTIONS = `Ledgerhand is a trading company's ERP: catalogue, stock, sales, purchasing and finance.
 
 You are acting on behalf of a specific user, with that user's role. The tools you can see are the ones that role may run -- there is no hidden set, and asking for something outside it will be refused rather than negotiated.
 

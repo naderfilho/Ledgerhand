@@ -21,7 +21,7 @@ import { Transcript, type RunOutcome, type RunTranscript } from './transcript.js
  * something that ends the run.
  */
 
-const SYSTEM_PROMPT = `You are operating a real ERP for a small trading company, through tools, on behalf of a named user whose role limits what you can do.
+const SYSTEM_PROMPT = `You are operating a real ERP for a trading company, through tools, on behalf of a named user whose role limits what you can do.
 
 How to work:
 - Establish the date and the state before acting. Call get_current_context first when a request mentions "today", "this month" or "yesterday".

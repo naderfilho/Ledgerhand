@@ -135,7 +135,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
             </h1>
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
               {t(
-                'A working system for a small trading company, built so that an agent can operate it without anybody having to trust the agent.',
+                'A working system for a trading company, built so that an agent can operate it without anybody having to trust the agent.',
               )}
             </p>
           </div>

@@ -69,7 +69,7 @@ const PT: Readonly<Record<string, string>> = {
     'Use uma das contas de demonstração abaixo para ver como o papel muda a aplicação.',
   'An ERP is the hard part. Letting an AI agent run it safely is the interesting part.':
     'O ERP é a parte difícil. Deixar um agente de IA operá-lo com segurança é a parte interessante.',
-  'A working system for a small trading company, built so that an agent can operate it without anybody having to trust the agent.':
+  'A working system for a trading company, built so that an agent can operate it without anybody having to trust the agent.':
     'Um sistema funcional para uma distribuidora, construído para que um agente possa operá-lo sem que ninguém precise confiar no agente.',
   'Permissions per tool': 'Permissão por ferramenta',
   'A role that cannot settle a receivable is never shown the tool, in the UI or over MCP.':
