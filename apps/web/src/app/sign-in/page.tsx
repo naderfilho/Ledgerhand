@@ -1,10 +1,13 @@
 import type { Metadata } from 'next'
+import { AgentGlimpse } from '@/components/app/agent-glimpse'
 import { Logo } from '@/components/app/logo'
 import { Wordmark } from '@/components/app/wordmark'
 import { redirect } from 'next/navigation'
 import type * as React from 'react'
 import { SignInForm } from '@/components/app/sign-in-form'
+import { replayFor } from '@/lib/agent-replay'
 import { currentSession } from '@/server/context'
+import { currentTranslator } from '@/server/locale'
 import { USE_CASES } from '@ledgerhand/domain'
 
 export const metadata: Metadata = { title: 'Sign in' }
@@ -35,6 +38,26 @@ const PILLARS = [
 
 export default async function SignInPage(): Promise<React.JSX.Element> {
   if ((await currentSession()) !== null) redirect('/')
+  // The one act worth showing before anybody has signed in: an agent that
+  // reached for something irreversible, stopped, and was allowed. Taken from
+  // the recording, so the page cannot promise behaviour the agent lacks.
+  const { t, lang } = await currentTranslator()
+  const act = replayFor(lang).acts.find((entry) => entry.name === 'daily-closing')
+  const approval = act?.beats.find((beat) => beat.kind === 'approval')
+  const glimpse =
+    act === undefined || approval?.kind !== 'approval'
+      ? null
+      : {
+          question: act.task,
+          // The first sentence of what the ERP asked. The whole message is a
+          // paragraph, and this card is four lines tall.
+          decision: `${approval.message.split('.')[0] ?? approval.message}?`,
+          approved: approval.approved,
+          steps: act.beats
+            .filter((beat) => beat.kind === 'call')
+            .slice(0, 3)
+            .map((beat) => ({ tool: beat.tool, plain: beat.plain })),
+        }
 
   return (
     // One atmosphere, not two screens. The glows belong to the page rather
@@ -43,7 +66,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
     // seam between two different fills read as a join between two pages. Now a
     // single ground carries both, the light crosses the middle, and the split
     // is a veil and a hairline instead of a change of colour.
-    <div className="relative min-h-dvh overflow-hidden bg-background">
+    <div className="relative min-h-dvh overflow-x-clip bg-background">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-56 -left-40 size-[46rem] rounded-full bg-primary/25 blur-[120px]"
@@ -57,19 +80,19 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
         className="pointer-events-none absolute -bottom-56 left-[38%] size-[40rem] rounded-full bg-primary/16 blur-[130px]"
       />
 
-      <div className="relative grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-        <section className="relative hidden flex-col justify-between p-10 lg:flex lg:bg-gradient-to-r lg:from-surface-sunken/70 lg:via-surface-sunken/25 lg:to-transparent">
+      <div className="relative grid min-h-dvh items-stretch lg:grid-cols-[1.1fr_1fr]">
+        <section className="relative hidden flex-col justify-between gap-8 p-10 lg:flex lg:bg-gradient-to-r lg:from-surface-sunken/95 lg:via-surface-sunken/70 lg:to-transparent">
           <div className="relative flex items-center gap-2.5">
             <Logo className="size-9" />
             <Wordmark size="sm" />
           </div>
 
-          <div className="relative max-w-md space-y-8">
+          <div className="relative max-w-xl space-y-6">
             <div className="space-y-3">
-              <h1 className="text-2xl leading-tight font-semibold tracking-tight text-balance">
+              <h1 className="font-display text-3xl leading-[1.15] font-semibold tracking-tight text-balance lg:text-[2.25rem]">
                 An ERP is the hard part. Letting an AI agent run it safely is the interesting part.
               </h1>
-              <p className="text-sm leading-relaxed text-muted-foreground">
+              <p className="max-w-lg text-base leading-relaxed text-muted-foreground">
                 A working system for a small trading company, built so that an agent can operate it
                 without anybody having to trust the agent.
               </p>
@@ -82,12 +105,25 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
                     {index + 1}
                   </span>
                   <div className="space-y-0.5">
-                    <p className="text-sm font-medium">{pillar.title}</p>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{pillar.body}</p>
+                    <p className="text-[0.9375rem] font-medium">{pillar.title}</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">{pillar.body}</p>
                   </div>
                 </li>
               ))}
             </ul>
+
+            {glimpse === null ? null : (
+              <AgentGlimpse
+                label={t('A recorded run')}
+                steps={glimpse.steps}
+                question={glimpse.question}
+                backstageLabel={t('Backstage')}
+                meaningLabel={t('What is happening')}
+                decision={glimpse.decision}
+                approved={glimpse.approved}
+                answerLabel={glimpse.approved ? t('Approved') : t('Refused')}
+              />
+            )}
           </div>
 
           <p className="relative text-xs text-muted-foreground">
