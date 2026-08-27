@@ -36,9 +36,18 @@ RUN pnpm install --frozen-lockfile
 FROM deps AS build
 COPY . .
 RUN pnpm build
-# Auth.js refuses to build without a secret. This one is thrown away: the
-# container reads AUTH_SECRET from the environment at run time.
-ENV AUTH_SECRET=build-time-placeholder-not-used-at-runtime
+# Auth.js refuses to build without a secret. This one is a literal placeholder
+# and is thrown away: the container reads AUTH_SECRET from the environment at
+# run time, and `runner` is built FROM base rather than from this stage, so
+# nothing here reaches the shipped image either way. ARG rather than ENV
+# because it is an input to the build below, not configuration of an image.
+#
+# Buildkit warns about it regardless -- SecretsUsedInArgOrEnv matches the
+# name, not the value, and fires on ARG just as it does on ENV. The warning
+# stays. Silencing it would mean `# check=skip=` at the top of the file, which
+# is file-wide, and a rule that no longer watches for a real leaked secret is
+# a worse trade than a warning that is wrong about this one line.
+ARG AUTH_SECRET=build-time-placeholder-not-used-at-runtime
 RUN pnpm --filter @ledgerhand/web build
 
 FROM build AS tools

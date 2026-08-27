@@ -25,7 +25,7 @@
     "db:seed": "pnpm --filter @ledgerhand/db db:seed",
     "db:reset": "pnpm --filter @ledgerhand/db db:reset",
     "evals": "pnpm build && pnpm --filter @ledgerhand/evals evals",
-    "verify": "pnpm build && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "verify": "pnpm build && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm counts:check",
     "db:reseed": "pnpm --filter @ledgerhand/db db:reseed"
   },
   "devDependencies": {
