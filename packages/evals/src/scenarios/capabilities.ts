@@ -52,14 +52,14 @@ export const replenishment: Scenario = {
     aSupplier(admin, { name: 'Northwind Supplies', paymentTermDays: 30 })
     aProduct(admin, {
       sku: 'ELE-2004',
-      name: 'Disjuntor 32A',
+      name: 'Circuit breaker 32A',
       salePrice: price(90),
       minimumStock: qty(40),
       onHand: qty(18),
       averageCost: cost(40),
     })
     aProduct(admin, {
-      sku: 'HID-1102',
+      sku: 'PLM-1102',
       name: 'Registro de gaveta 1"',
       salePrice: price(60),
       minimumStock: qty(30),
@@ -68,7 +68,7 @@ export const replenishment: Scenario = {
     })
     // A third product, comfortably stocked, that must not be ordered.
     aProduct(admin, {
-      sku: 'FER-3001',
+      sku: 'TOL-3001',
       name: 'Parafuso sextavado',
       salePrice: price(2),
       minimumStock: qty(100),
@@ -80,7 +80,7 @@ export const replenishment: Scenario = {
     finished(),
     purchaseOrdersDrafted(1),
     orderCovers('ELE-2004', '22'),
-    orderCovers('HID-1102', '18'),
+    orderCovers('PLM-1102', '18'),
     purchaseOrdersLeftAsDrafts(),
     stockUnmoved(),
   ],

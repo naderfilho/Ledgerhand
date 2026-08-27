@@ -154,8 +154,8 @@ export const SEED_CUSTOMERS: readonly SeedParty[] = [
 /** Forty products across five families, with plausible costs and margins. */
 export const SEED_PRODUCTS: readonly SeedProduct[] = [
   {
-    sku: 'FER-1001',
-    name: 'Chave de fenda 6mm',
+    sku: 'TOL-1001',
+    name: 'Screwdriver 6mm',
     unit: 'unit',
     cost: 8.4,
     margin: 0.62,
@@ -163,8 +163,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 120,
   },
   {
-    sku: 'FER-1002',
-    name: 'Chave de fenda 8mm',
+    sku: 'TOL-1002',
+    name: 'Screwdriver 8mm',
     unit: 'unit',
     cost: 9.1,
     margin: 0.6,
@@ -172,8 +172,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 95,
   },
   {
-    sku: 'FER-1003',
-    name: 'Chave inglesa 10"',
+    sku: 'TOL-1003',
+    name: 'Adjustable wrench 10"',
     unit: 'unit',
     cost: 34.5,
     margin: 0.55,
@@ -181,8 +181,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 40,
   },
   {
-    sku: 'FER-1004',
-    name: 'Martelo unha 27mm',
+    sku: 'TOL-1004',
+    name: 'Claw hammer 27mm',
     unit: 'unit',
     cost: 27.9,
     margin: 0.58,
@@ -190,8 +190,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 60,
   },
   {
-    sku: 'FER-1005',
-    name: 'Alicate universal 8"',
+    sku: 'TOL-1005',
+    name: 'Combination pliers 8"',
     unit: 'unit',
     cost: 22.3,
     margin: 0.6,
@@ -199,8 +199,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 70,
   },
   {
-    sku: 'FER-1006',
-    name: 'Trena 5m',
+    sku: 'TOL-1006',
+    name: 'Tape measure 5m',
     unit: 'unit',
     cost: 14.8,
     margin: 0.65,
@@ -208,8 +208,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 85,
   },
   {
-    sku: 'FER-1007',
-    name: 'Serrote 20"',
+    sku: 'TOL-1007',
+    name: 'Hand saw 20"',
     unit: 'unit',
     cost: 31.2,
     margin: 0.52,
@@ -217,8 +217,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 28,
   },
   {
-    sku: 'FER-1008',
-    name: 'Nivel de bolha 40cm',
+    sku: 'TOL-1008',
+    name: 'Spirit level 40cm',
     unit: 'unit',
     cost: 19.6,
     margin: 0.57,
@@ -228,7 +228,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
 
   {
     sku: 'ELE-2001',
-    name: 'Cabo flexivel 2,5mm',
+    name: 'Flexible cable 2.5mm',
     unit: 'm',
     cost: 2.35,
     margin: 0.48,
@@ -237,7 +237,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2002',
-    name: 'Cabo flexivel 4mm',
+    name: 'Flexible cable 4mm',
     unit: 'm',
     cost: 3.7,
     margin: 0.46,
@@ -246,7 +246,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2003',
-    name: 'Disjuntor 20A',
+    name: 'Circuit breaker 20A',
     unit: 'unit',
     cost: 16.4,
     margin: 0.55,
@@ -255,7 +255,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2004',
-    name: 'Disjuntor 32A',
+    name: 'Circuit breaker 32A',
     unit: 'unit',
     cost: 19.8,
     margin: 0.54,
@@ -264,7 +264,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2005',
-    name: 'Tomada 2P+T 10A',
+    name: 'Socket outlet 10A',
     unit: 'unit',
     cost: 6.9,
     margin: 0.7,
@@ -273,7 +273,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2006',
-    name: 'Interruptor simples',
+    name: 'Single light switch',
     unit: 'unit',
     cost: 5.4,
     margin: 0.72,
@@ -282,7 +282,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2007',
-    name: 'Fita isolante 20m',
+    name: 'Insulating tape 20m',
     unit: 'unit',
     cost: 4.2,
     margin: 0.8,
@@ -291,7 +291,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2008',
-    name: 'Lampada LED 9W',
+    name: 'LED bulb 9W',
     unit: 'unit',
     cost: 7.8,
     margin: 0.68,
@@ -300,7 +300,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2009',
-    name: 'Refletor LED 50W',
+    name: 'LED floodlight 50W',
     unit: 'unit',
     cost: 48.9,
     margin: 0.5,
@@ -309,7 +309,7 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
   {
     sku: 'ELE-2010',
-    name: 'Conduite corrugado 25mm',
+    name: 'Corrugated conduit 25mm',
     unit: 'm',
     cost: 1.85,
     margin: 0.6,
@@ -318,8 +318,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
 
   {
-    sku: 'HID-3001',
-    name: 'Tubo PVC 25mm',
+    sku: 'PLM-3001',
+    name: 'PVC pipe 25mm',
     unit: 'm',
     cost: 5.6,
     margin: 0.5,
@@ -327,8 +327,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 900,
   },
   {
-    sku: 'HID-3002',
-    name: 'Tubo PVC 50mm',
+    sku: 'PLM-3002',
+    name: 'PVC pipe 50mm',
     unit: 'm',
     cost: 11.4,
     margin: 0.48,
@@ -336,8 +336,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 520,
   },
   {
-    sku: 'HID-3003',
-    name: 'Joelho 90 25mm',
+    sku: 'PLM-3003',
+    name: 'Elbow 90 25mm',
     unit: 'unit',
     cost: 1.95,
     margin: 0.75,
@@ -345,8 +345,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 640,
   },
   {
-    sku: 'HID-3004',
-    name: 'Luva soldavel 25mm',
+    sku: 'PLM-3004',
+    name: 'Solvent weld coupling 25mm',
     unit: 'unit',
     cost: 1.6,
     margin: 0.78,
@@ -354,8 +354,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 700,
   },
   {
-    sku: 'HID-3005',
-    name: 'Registro esfera 25mm',
+    sku: 'PLM-3005',
+    name: 'Ball valve 25mm',
     unit: 'unit',
     cost: 24.7,
     margin: 0.52,
@@ -363,8 +363,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 78,
   },
   {
-    sku: 'HID-3006',
-    name: 'Torneira metal 1/2"',
+    sku: 'PLM-3006',
+    name: 'Brass tap 1/2"',
     unit: 'unit',
     cost: 38.4,
     margin: 0.5,
@@ -372,8 +372,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 46,
   },
   {
-    sku: 'HID-3007',
-    name: 'Veda rosca 18m',
+    sku: 'PLM-3007',
+    name: 'Thread seal tape 18m',
     unit: 'unit',
     cost: 3.1,
     margin: 0.85,
@@ -381,8 +381,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 340,
   },
   {
-    sku: 'HID-3008',
-    name: 'Caixa dagua 500L',
+    sku: 'PLM-3008',
+    name: 'Water tank 500L',
     unit: 'unit',
     cost: 289.0,
     margin: 0.35,
@@ -391,8 +391,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
 
   {
-    sku: 'QUI-4001',
-    name: 'Tinta acrilica branca 18L',
+    sku: 'CHM-4001',
+    name: 'White acrylic paint 18L',
     unit: 'unit',
     cost: 189.0,
     margin: 0.4,
@@ -400,8 +400,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 22,
   },
   {
-    sku: 'QUI-4002',
-    name: 'Tinta acrilica cinza 3,6L',
+    sku: 'CHM-4002',
+    name: 'Grey acrylic paint 3.6L',
     unit: 'unit',
     cost: 52.0,
     margin: 0.45,
@@ -409,8 +409,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 40,
   },
   {
-    sku: 'QUI-4003',
-    name: 'Massa corrida 25kg',
+    sku: 'CHM-4003',
+    name: 'Wall filler 25kg',
     unit: 'unit',
     cost: 68.5,
     margin: 0.38,
@@ -418,8 +418,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 26,
   },
   {
-    sku: 'QUI-4004',
-    name: 'Solvente 5L',
+    sku: 'CHM-4004',
+    name: 'Solvent 5L',
     unit: 'unit',
     cost: 42.3,
     margin: 0.42,
@@ -427,8 +427,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 30,
   },
   {
-    sku: 'QUI-4005',
-    name: 'Silicone incolor 280g',
+    sku: 'CHM-4005',
+    name: 'Clear silicone 280g',
     unit: 'unit',
     cost: 14.9,
     margin: 0.6,
@@ -436,8 +436,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 110,
   },
   {
-    sku: 'QUI-4006',
-    name: 'Adesivo PVC 175g',
+    sku: 'CHM-4006',
+    name: 'PVC solvent cement 175g',
     unit: 'unit',
     cost: 9.7,
     margin: 0.65,
@@ -445,8 +445,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 140,
   },
   {
-    sku: 'QUI-4007',
-    name: 'Desengraxante 1L',
+    sku: 'CHM-4007',
+    name: 'Degreaser 1L',
     unit: 'l',
     cost: 18.2,
     margin: 0.55,
@@ -455,8 +455,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
   },
 
   {
-    sku: 'EMB-5001',
-    name: 'Caixa papelao 40x30x25',
+    sku: 'PKG-5001',
+    name: 'Cardboard box 40x30x25',
     unit: 'unit',
     cost: 3.4,
     margin: 0.55,
@@ -464,8 +464,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 420,
   },
   {
-    sku: 'EMB-5002',
-    name: 'Fita adesiva 48mm',
+    sku: 'PKG-5002',
+    name: 'Packing tape 48mm',
     unit: 'unit',
     cost: 5.9,
     margin: 0.62,
@@ -473,8 +473,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 280,
   },
   {
-    sku: 'EMB-5003',
-    name: 'Plastico bolha 60cm',
+    sku: 'PKG-5003',
+    name: 'Bubble wrap 60cm',
     unit: 'm',
     cost: 1.25,
     margin: 0.7,
@@ -482,8 +482,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 1100,
   },
   {
-    sku: 'EMB-5004',
-    name: 'Saco plastico 30x40',
+    sku: 'PKG-5004',
+    name: 'Poly bag 30x40',
     unit: 'pack',
     cost: 12.8,
     margin: 0.58,
@@ -491,8 +491,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 150,
   },
   {
-    sku: 'EMB-5005',
-    name: 'Palete madeira 1,2m',
+    sku: 'PKG-5005',
+    name: 'Wooden pallet 1.2m',
     unit: 'unit',
     cost: 74.0,
     margin: 0.3,
@@ -500,8 +500,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 24,
   },
   {
-    sku: 'EMB-5006',
-    name: 'Filme stretch 500mm',
+    sku: 'PKG-5006',
+    name: 'Stretch film 500mm',
     unit: 'unit',
     cost: 46.5,
     margin: 0.45,
@@ -509,8 +509,8 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
     openingStock: 38,
   },
   {
-    sku: 'EMB-5007',
-    name: 'Etiqueta termica 100x50',
+    sku: 'PKG-5007',
+    name: 'Thermal label 100x50',
     unit: 'pack',
     cost: 28.9,
     margin: 0.5,
@@ -524,9 +524,9 @@ export const SEED_PRODUCTS: readonly SeedProduct[] = [
  * answer and the "buy from the cheapest supplier" eval has something to weigh.
  */
 export const SUPPLIER_FOR_PREFIX: Readonly<Record<string, number>> = {
-  FER: 2,
+  TOL: 2,
   ELE: 3,
-  HID: 1,
-  QUI: 5,
-  EMB: 4,
+  PLM: 1,
+  CHM: 5,
+  PKG: 4,
 }

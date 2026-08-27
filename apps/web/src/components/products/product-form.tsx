@@ -102,7 +102,7 @@ export function ProductFormDialog({
                   name="sku"
                   required
                   maxLength={32}
-                  placeholder="FER-1009"
+                  placeholder="TOL-1009"
                   autoFocus
                 />
               </Field>
@@ -115,7 +115,7 @@ export function ProductFormDialog({
                 required
                 maxLength={120}
                 defaultValue={product?.name}
-                placeholder="Chave de fenda 6mm"
+                placeholder="Screwdriver 6mm"
               />
             </Field>
 
