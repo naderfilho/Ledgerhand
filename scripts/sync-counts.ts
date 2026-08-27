@@ -1,11 +1,18 @@
 /**
- * Rewrites the test and coverage figures in the README from the run that produced them.
+ * Rewrites the measured figures in the README from the runs that produced them.
  *
  * ```sh
- * pnpm test:coverage   # writes the artefacts this reads
- * pnpm counts          # rewrites README.md
- * pnpm counts:check    # fails if it is stale; CI runs this
+ * pnpm test:coverage   # writes the test and coverage artefacts this reads
+ * pnpm evals ...       # writes docs/metrics/evals.json, and costs money
+ * pnpm counts          # rewrites README.md and docs/metrics/tests.json
+ * pnpm counts:check    # fails if either is stale; CI runs this
  * ```
+ *
+ * Two kinds of figure, and they arrive differently. The test counts come from a run that
+ * happens on every push, so they are read straight out of `coverage/`. The eval rates come
+ * from a run that calls a paid API, so they are read out of a committed file that somebody
+ * regenerated deliberately -- which is also the file the public page reads, so the README,
+ * the page and the suite cannot hold three different opinions about the same measurement.
  *
  * The testing block carries one count per workspace project, a total, the number of placeholders
  * that skip without Docker, and three coverage percentages for the domain. All were typed by hand, and
@@ -17,6 +24,7 @@
  * stay aligned when a count changes width. The prose stays in the README, where it belongs.
  */
 
+import type { EvalsSummary } from '@ledgerhand/evals'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
@@ -170,18 +178,132 @@ readme = readme.replace(
   `${String(tests.numPassedTests)} passing, ${String(Math.floor(lines.pct))}% line coverage on the domain`,
 )
 
+/**
+ * ---------------------------------------------------------------------------
+ * The eval rates
+ * ---------------------------------------------------------------------------
+ * Read from the committed summary rather than measured here, because measuring
+ * costs money and a README rebuild must not. `pnpm evals --summary` writes it.
+ */
+const evals = readJson(at('docs/metrics/evals.json')) as EvalsSummary
+
+/**
+ * A markdown table, padded the way Prettier pads one.
+ *
+ * Emitting it unaligned and letting `pnpm format` fix it afterwards would work
+ * once and then fail forever: `format:check` runs before `counts:check` in CI,
+ * so a table this script wrote would be reported as badly formatted rather than
+ * as out of date.
+ */
+function table(header: readonly string[], rows: readonly (readonly string[])[]): string {
+  const widths = header.map((cell, column) =>
+    Math.max(cell.length, ...rows.map((row) => (row[column] ?? '').length)),
+  )
+  const line = (cells: readonly string[]): string =>
+    `| ${cells.map((cell, column) => cell.padEnd(widths[column] ?? 0)).join(' | ')} |`
+  return [
+    line(header),
+    `| ${widths.map((width) => '-'.repeat(width)).join(' | ')} |`,
+    ...rows.map(line),
+  ].join('\n')
+}
+
+const percent = (passed: number, attempted: number): number =>
+  attempted === 0 ? 0 : Math.round((passed / attempted) * 100)
+
+const rates = table(
+  ['Scenario', 'Kind', 'Result'],
+  evals.scenarios.map((scenario) => {
+    const score = `${String(scenario.passed)}/${String(scenario.attempted)}`
+    return [
+      `\`${scenario.name}\``,
+      scenario.kind,
+      scenario.kind === 'guardrail'
+        ? `${scenario.passed === scenario.attempted ? 'held' : '**BROKEN**'}, ${score}`
+        : `${score} (${String(percent(scenario.passed, scenario.attempted))}%)`,
+    ]
+  }),
+)
+
+/**
+ * The whole rates section, prose included.
+ *
+ * The prose carries three measured figures of its own -- the two sample sizes,
+ * the number of runs and what they cost -- and leaving those to be retyped
+ * beside a generated table would put the drift back one paragraph higher.
+ */
+const ratesSection = [
+  `Guardrails at k=${String(evals.k.guardrail)} and capabilities at k=${String(evals.k.capability)} -- ${String(evals.totalRuns)} runs, $${evals.costUsd.toFixed(2)} of API credit, against the same English tasks the site shows, on the model set in \`AGENT_MODEL\`. The two sample sizes differ because the two things do: a guardrail is a gate and repeating it teaches nothing once it has held, while a capability is a rate, and a rate quoted over three runs invites the obvious question. The rate belongs to that model: another one gives another number, which is why it is quoted with the k and not on its own.`,
+  '',
+  rates,
+  '',
+  evals.guardrailsHeld
+    ? `Every guardrail held; the capability rate is ${String(Math.round(evals.capabilityRate * 100))}% over k=${String(evals.k.capability)}.`
+    : `A GUARDRAIL BROKE. The capability rate was ${String(Math.round(evals.capabilityRate * 100))}% over k=${String(evals.k.capability)}, and it is not the headline.`,
+].join('\n')
+
+const ratesRegion = /(?<=### The rates\n\n)[\s\S]*?(?=\n\n### What the first run)/
+if (!ratesRegion.test(readme)) {
+  throw new Error('README.md has no "### The rates" section for the eval figures to go in')
+}
+// A function, not the string: a cost of `$1.40` in a replacement string is read
+// as capture group one followed by ".40".
+readme = readme.replace(ratesRegion, () => ratesSection)
+
+/**
+ * ---------------------------------------------------------------------------
+ * The artefacts
+ * ---------------------------------------------------------------------------
+ * `docs/metrics/tests.json` is this run, reduced to the figures somebody might
+ * want to render. It is committed because `coverage/` is not: the public page
+ * is built on a machine that has never run the test suite, and a page that
+ * cannot read a measurement would have to be told one.
+ */
+const testsArtefact =
+  JSON.stringify(
+    {
+      total: tests.numTotalTests,
+      passed: tests.numPassedTests,
+      pending: tests.numPendingTests,
+      perProject: Object.fromEntries([...perProject].sort(([a], [b]) => a.localeCompare(b))),
+      coverage: {
+        lines: Number(truncate(lines.pct)),
+        functions: Number(truncate(functions.pct)),
+        branches: Number(truncate(branches.pct)),
+      },
+    },
+    null,
+    2,
+  ) + '\n'
+
+/** No date in here on purpose: a timestamp would make CI stale every midnight. */
+const testsPath = at('docs/metrics/tests.json')
+const testsBefore = ((): string => {
+  try {
+    return readFileSync(testsPath, 'utf8')
+  } catch {
+    return ''
+  }
+})()
+
 const figures =
   `${String(tests.numTotalTests)} collected, ${String(tests.numPassedTests)} passing, ` +
-  `${truncate(lines.pct)}% lines in the domain`
+  `${truncate(lines.pct)}% lines in the domain, ` +
+  `evals k=${String(evals.k.guardrail)}/${String(evals.k.capability)} from ${evals.measuredOn}`
+
+const stale: string[] = []
+if (readme !== before) stale.push('README.md')
+if (testsArtefact !== testsBefore) stale.push('docs/metrics/tests.json')
 
 const check = process.argv.includes('--check')
-if (readme === before) {
+if (stale.length === 0) {
   console.log(`up to date: ${figures}`)
 } else if (check) {
-  console.error(`README.md is stale: the run says ${figures}.`)
+  console.error(`${stale.join(' and ')} stale: the runs say ${figures}.`)
   console.error('Run `pnpm counts` and commit the result.')
   process.exit(1)
 } else {
   writeFileSync(readmePath, readme, 'utf8')
+  writeFileSync(testsPath, testsArtefact, 'utf8')
   console.log(`written: ${figures}`)
 }

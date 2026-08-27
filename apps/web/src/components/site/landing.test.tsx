@@ -25,6 +25,32 @@ describe('the landing page', () => {
     expect(renderToStaticMarkup(<LandingPageEnglish />)).toContain(`href="${SIGN_IN_PATH}"`)
   })
 
+  it('sizes the recording, so the page does not jump while it loads', () => {
+    // The dimensions come from docs/demo.svg itself, through the build. An
+    // image this size arriving without them reflows everything under it, which
+    // on this page is the entire argument.
+    const html = renderToStaticMarkup(<LandingPageEnglish />)
+    expect(html).toMatch(/<img[^>]+width="1280"[^>]+height="928"/)
+    expect(html).toMatch(/<img[^>]+fetchPriority="high"/)
+  })
+
+  it('preloads the recording, which is the largest thing on the page', () => {
+    // React hoists a `<link rel="preload">` out of an image marked high
+    // priority, so the fetch starts with the document rather than after the
+    // parser reaches the tag. That head start is the LCP budget.
+    expect(renderToStaticMarkup(<LandingPageEnglish />)).toMatch(
+      /<link rel="preload" as="image"[^>]+fetchPriority="high"/,
+    )
+  })
+
+  it('describes the recording to somebody who cannot see it', () => {
+    const html = renderToStaticMarkup(<LandingPageEnglish />)
+    const alt = /<img[^>]+alt="([^"]*)"/.exec(html)?.[1] ?? ''
+    // Not "demo", not "screenshot": what the three scenarios are.
+    expect(alt).toContain('never offered')
+    expect(alt).toContain('refuses')
+  })
+
   it('renders in Portuguese at its own URL', () => {
     const html = renderToStaticMarkup(<LandingPagePortuguese />)
     expect(html).toContain('O ERP é a parte difícil')

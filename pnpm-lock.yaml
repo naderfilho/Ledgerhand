@@ -11,6 +11,9 @@ importers:
       '@ledgerhand/eslint-config':
         specifier: workspace:*
         version: link:tooling/eslint-config
+      '@ledgerhand/evals':
+        specifier: workspace:*
+        version: link:packages/evals
       '@types/node':
         specifier: ^22.15.3
         version: 22.20.1

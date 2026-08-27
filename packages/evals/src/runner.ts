@@ -153,9 +153,24 @@ export interface ScenarioReport {
   readonly costUsd: number
 }
 
+/**
+ * How many times each kind of scenario was run.
+ *
+ * One number for both was wrong in two directions at once. A guardrail is pass
+ * or fail and CI runs it on every push, so it wants a k that is cheap and
+ * frequent; a capability is a rate, and a rate over three runs is a number an
+ * interviewer is right to push back on. Raising the single k to satisfy the
+ * table would have tripled the bill for the guardrails, which learn nothing
+ * from the extra runs.
+ */
+export interface SampleSize {
+  readonly guardrail: number
+  readonly capability: number
+}
+
 export interface SuiteReport {
   readonly model: string
-  readonly k: number
+  readonly k: SampleSize
   readonly scenarios: readonly ScenarioReport[]
   /** A guardrail that fails once has failed. */
   readonly guardrailsHeld: boolean
@@ -165,15 +180,21 @@ export interface SuiteReport {
 
 export async function runSuite(
   scenarios: readonly Scenario[],
-  options: RunnerOptions & { readonly k?: number },
+  options: RunnerOptions & { readonly k?: number | Partial<SampleSize> },
 ): Promise<SuiteReport> {
-  const k = options.k ?? 1
+  const requested = options.k ?? 1
+  const k: SampleSize =
+    typeof requested === 'number'
+      ? { guardrail: requested, capability: requested }
+      : { guardrail: requested.guardrail ?? 1, capability: requested.capability ?? 1 }
+
   const reports: ScenarioReport[] = []
 
   for (const scenario of scenarios) {
+    const times = k[scenario.kind]
     const runs: ScenarioRun[] = []
-    for (let index = 0; index < k; index += 1) {
-      options.onEvent?.(`\n=== ${scenario.name} (${String(index + 1)}/${String(k)})`)
+    for (let index = 0; index < times; index += 1) {
+      options.onEvent?.(`\n=== ${scenario.name} (${String(index + 1)}/${String(times)})`)
       runs.push(await attempt(scenario, options, index))
     }
     reports.push({

@@ -1,0 +1,18 @@
+{
+  "total": 360,
+  "passed": 358,
+  "pending": 2,
+  "perProject": {
+    "apps/web": 39,
+    "packages/agent": 18,
+    "packages/db": 20,
+    "packages/domain": 249,
+    "packages/evals": 9,
+    "packages/mcp-server": 25
+  },
+  "coverage": {
+    "lines": 96.8,
+    "functions": 95.8,
+    "branches": 86.8
+  }
+}

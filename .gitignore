@@ -36,6 +36,10 @@ Thumbs.db
 # Intermediate recordings. `demo` writes the cast that svg-term turns into
 # docs/demo.svg, and the eval runs write their own reports; the rendered SVG is
 # the artefact worth keeping, not the frames it was built from.
-demo.cast
-evals.md
-evals.json
+#
+# Anchored to the root, all three of them. Without the leading slash these match
+# at any depth, and `docs/metrics/evals.json` -- the scores the README and the
+# public page are both built from -- would have been silently untracked.
+/demo.cast
+/evals.md
+/evals.json

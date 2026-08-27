@@ -25,6 +25,7 @@
     "db:seed": "pnpm --filter @ledgerhand/db db:seed",
     "db:reset": "pnpm --filter @ledgerhand/db db:reset",
     "evals": "pnpm build && pnpm --filter @ledgerhand/evals evals",
+    "evals:record": "pnpm evals --k 3 --capability-k 10 --summary docs/metrics/evals.json && pnpm counts",
     "verify": "pnpm build && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm counts:check",
     "db:reseed": "pnpm --filter @ledgerhand/db db:reseed"
   },
@@ -36,7 +37,8 @@
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4",
-    "@ledgerhand/eslint-config": "workspace:*"
+    "@ledgerhand/eslint-config": "workspace:*",
+    "@ledgerhand/evals": "workspace:*"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

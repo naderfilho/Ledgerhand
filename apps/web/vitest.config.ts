@@ -1,7 +1,36 @@
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
+import { defineConfig, type Plugin } from 'vitest/config'
 
 const at = (path: string): string => fileURLToPath(new URL(path, import.meta.url))
+
+/**
+ * What Next gives you for `import demo from './demo.svg'`, without Next.
+ *
+ * The dimensions are read from the file rather than invented, because a page
+ * that forgot to set `width` and `height` on the image would still render in a
+ * test told the numbers by a stub, and the missing attributes are precisely
+ * what makes the layout jump while the image loads.
+ */
+function staticImages(): Plugin {
+  return {
+    name: 'ledgerhand:static-images',
+    enforce: 'pre',
+    load(id: string) {
+      const path = id.split('?')[0] ?? id
+      if (!path.endsWith('.svg')) return null
+      const svg = readFileSync(path, 'utf8')
+      const number = (attribute: string): number =>
+        Number(new RegExp(`${attribute}="([\\d.]+)"`).exec(svg)?.[1] ?? 0)
+      const image = {
+        src: `/_next/static/media/${path.split(/[\\/]/).at(-1) ?? 'image.svg'}`,
+        width: Math.round(number('width')),
+        height: Math.round(number('height')),
+      }
+      return `export default ${JSON.stringify(image)}`
+    },
+  }
+}
 
 /**
  * ---------------------------------------------------------------------------
@@ -21,6 +50,7 @@ const at = (path: string): string => fileURLToPath(new URL(path, import.meta.url
  * decides who is sent where, and the public page.
  */
 export default defineConfig({
+  plugins: [staticImages()],
   test: {
     name: 'web',
     environment: 'node',
@@ -32,6 +62,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': at('./src'),
+      // The committed measurements, outside the application on purpose: they
+      // are read by the README's own tooling as well as by this page, and a
+      // file that lives inside `apps/web` would look like the page's private
+      // copy of a number rather than the one everybody quotes.
+      '@metrics': at('../../docs/metrics'),
       // A marker package whose whole job is to throw when it is imported from
       // somewhere that is not a Server Component. A test runner is exactly
       // that somewhere, and the guarantee it enforces is a bundler concern

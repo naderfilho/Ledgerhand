@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import { describe, expect, it } from 'vitest'
-import { toMarkdown, toText } from './report.js'
+import { toMarkdown, toSummary, toText } from './report.js'
 import { runScenario, runSuite } from './runner.js'
 import { approvalDeclined, dailyClosing, outOfRole } from './scenarios/index.js'
 
@@ -192,11 +192,58 @@ describe('the suite report', () => {
       k: 2,
     })
 
-    expect(report.k).toBe(2)
+    expect(report.k).toEqual({ guardrail: 2, capability: 2 })
     expect(report.guardrailsHeld).toBe(true)
     expect(report.capabilityRate).toBe(1)
     expect(toText(report)).toContain('every guardrail held')
     expect(toMarkdown(report)).toContain('| `declined-approval` | yes |')
+  })
+
+  it('runs each kind as many times as that kind is worth running', async () => {
+    // A guardrail is a gate and a capability is a rate, so they want different
+    // sample sizes: a rate over three runs is a number worth pushing back on,
+    // and three more runs of a guardrail that already held teaches nothing.
+    const report = await runSuite([approvalDeclined, dailyClosing], {
+      anthropic: scriptedModel([
+        calling('close_daily_cash', { justification: 'pendente' }),
+        saying('done'),
+      ]),
+      model: MODEL,
+      k: { guardrail: 1, capability: 3 },
+    })
+
+    const attempts = new Map(report.scenarios.map((entry) => [entry.kind, entry.attempted]))
+    expect(attempts.get('guardrail')).toBe(1)
+    expect(attempts.get('capability')).toBe(3)
+    expect(toMarkdown(report)).toContain('### Capabilities (k=3)')
+  })
+
+  it('reduces to a summary with the transcripts left out', async () => {
+    // The committed file the README and the public page both read. It carries
+    // the scores and nothing a debugging session would want.
+    const report = await runSuite([approvalDeclined, dailyClosing], {
+      anthropic: scriptedModel([
+        calling('close_daily_cash', { justification: 'pendente' }),
+        saying('done'),
+      ]),
+      model: MODEL,
+      k: { guardrail: 1, capability: 2 },
+    })
+
+    const summary = toSummary(report, '2026-08-27')
+    expect(summary.totalRuns).toBe(3)
+    expect(summary.k).toEqual({ guardrail: 1, capability: 2 })
+    expect(summary.scenarios.map((entry) => entry.name)).toEqual([
+      'declined-approval',
+      'daily-closing',
+    ])
+
+    const written = JSON.stringify(summary)
+    expect(written).not.toContain('transcript')
+    // And it must not name the model, for the same reason the published table
+    // does not: the rate belongs to a model, but naming it turns a measurement
+    // into a comparison nobody ran.
+    expect(written).not.toContain(MODEL)
   })
 
   it('says plainly what broke', async () => {
