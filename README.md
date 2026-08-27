@@ -103,7 +103,7 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
 | Tenant isolation   | Row level security, attacked from five directions by tests               |
 | Demo data          | 90 days of reproducible trading, generated through the real use cases    |
-| Tests              | 451 passing, 96% line coverage on the domain, property-based             |
+| Tests              | 458 passing, 96% line coverage on the domain, property-based             |
 | Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
 | Web UI             | 21 routes, role-filtered, dark and light                                 |
 | ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
@@ -139,7 +139,7 @@ To look at it, one command and nothing installed but Docker:
 docker compose -f docker/compose.yml --profile demo up
 ```
 
-That builds the application, migrates the schema, seeds ninety days of trading and serves it on <http://localhost:3000>. Sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`. There is one user per role (`admin`, `sales`, `finance`, `stock`, `readonly`) and the role decides what the screens, the API and the agent's tool list contain.
+That builds the application, migrates the schema, seeds ninety days of trading and serves it on <http://localhost:3000>, which opens on the public page; the application itself is under `/dashboard`. Sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`. There is one user per role (`admin`, `sales`, `finance`, `stock`, `readonly`) and the role decides what the screens, the API and the agent's tool list contain.
 
 To work on it:
 
@@ -490,10 +490,10 @@ packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         9 tests, proving the scoring catches an agent that lies
 packages/db           20 tests, against a real Postgres 17: RLS, persistence,
                       idempotency, agent attribution
-apps/web             132 tests, the routing contract and the public page
+apps/web             139 tests, the routing contract and the public page
                      ---
-                     453 collected. Two of them are the placeholders that report
-                     a missing database, so with Docker up 451 run and pass.
+                     460 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 458 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:

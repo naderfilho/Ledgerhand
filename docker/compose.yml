@@ -67,7 +67,8 @@ services:
   #
   #     docker compose -f docker/compose.yml --profile demo up
   #
-  # Then open http://localhost:3000 and sign in with guest@ledgerhand.cloud.
+  # Then open http://localhost:3000, which is the public page, and sign in from
+  # there with guest@ledgerhand.cloud. The application lives under /dashboard.
   # Development still runs the app from source against the postgres service
   # above; the demo profile keeps the two out of each other’s way.
   # -------------------------------------------------------------------------
