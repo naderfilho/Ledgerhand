@@ -165,6 +165,9 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
               className="flex h-9 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:border-border-strong hover:text-foreground"
             >
               <Code2 className="size-4" />
+              {/* Named at every width. Below sm the label is hidden, which left the
+                  link with an icon and no accessible name at all. */}
+              <span className="sr-only sm:hidden">{content.nav.source}</span>
               <span className="hidden sm:inline">{content.nav.source}</span>
             </a>
             <Link

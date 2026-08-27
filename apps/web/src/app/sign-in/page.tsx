@@ -121,6 +121,8 @@ export default async function SignInPage({
               className="flex h-9 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:border-border-strong hover:text-foreground"
             >
               <Code2 className="size-4" />
+              {/* Named at every width: below sm the visible label is hidden. */}
+              <span className="sr-only sm:hidden">{t('Source')}</span>
               <span className="hidden sm:inline">{t('Source')}</span>
             </a>
           </div>

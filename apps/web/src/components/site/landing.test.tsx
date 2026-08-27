@@ -69,6 +69,18 @@ describe('the landing page', () => {
     expect(english()).toMatch(/<link rel="preload" as="image"[^>]+fetchPriority="high"/)
   })
 
+  it('names every link, including the ones whose label is hidden on a phone', () => {
+    // Lighthouse found this in production, not here: below the `sm` breakpoint
+    // the source link's label is display:none, which took it out of the
+    // accessibility tree and left an anchor whose whole name was an icon.
+    const html = english()
+    for (const anchor of html.match(/<a\b[^>]*>[\s\S]*?<\/a>/g) ?? []) {
+      const named =
+        /aria-label="[^"]+"/.test(anchor) || anchor.replace(/<[^>]+>/g, '').trim().length > 0
+      expect(named, `an anchor with no accessible name: ${anchor.slice(0, 90)}`).toBe(true)
+    }
+  })
+
   it('describes the recording to somebody who cannot see it', () => {
     const alt = /<img[^>]+alt="([^"]*)"/.exec(english())?.[1] ?? ''
     // Not "demo", not "screenshot": which three scenarios, and how they end.
