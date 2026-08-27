@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type * as React from 'react'
 import { Wordmark } from '@/components/app/wordmark'
+import { HOME_PATH } from '@/lib/routes'
 
 export default function NotFound(): React.JSX.Element {
   return (
@@ -13,7 +14,7 @@ export default function NotFound(): React.JSX.Element {
           company, which this application cannot show you even by accident.
         </p>
       </div>
-      <Link href="/" className="text-sm font-medium text-primary hover:underline">
+      <Link href={HOME_PATH} className="text-sm font-medium text-primary hover:underline">
         Back to the dashboard
       </Link>
     </main>

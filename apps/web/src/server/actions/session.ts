@@ -3,6 +3,7 @@
 import { AuthError } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import { CALLBACK_PARAM, SIGN_IN_PATH, safeCallbackUrl } from '@/lib/routes'
 import { signIn, signOut } from '@/server/auth'
 
 const schema = z.object({
@@ -45,9 +46,16 @@ export async function signInAction(
     throw error
   }
 
-  redirect('/')
+  // Where they were going before they were stopped, if that is still a place
+  // this application can send somebody. `safeCallbackUrl` is what stands
+  // between a form field and an open redirect, so the value goes through it
+  // rather than into `redirect` directly.
+  redirect(safeCallbackUrl(formData.get(CALLBACK_PARAM)))
 }
 
 export async function signOutAction(): Promise<void> {
-  await signOut({ redirectTo: '/sign-in' })
+  // Back to the form rather than to the landing page: signing out here is
+  // almost always somebody about to sign in again as a different role, which
+  // is the thing the demo exists to show.
+  await signOut({ redirectTo: SIGN_IN_PATH })
 }

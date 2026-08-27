@@ -101,9 +101,9 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
 | Tenant isolation   | Row level security, attacked from five directions by tests               |
 | Demo data          | 90 days of reproducible trading, generated through the real use cases    |
-| Tests              | 317 passing, 96% line coverage on the domain, property-based             |
+| Tests              | 341 passing, 96% line coverage on the domain, property-based             |
 | Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
-| Web UI             | 19 routes, role-filtered, dark and light                                 |
+| Web UI             | 21 routes, role-filtered, dark and light                                 |
 | ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
 | MCP server         | 43 tools, 7 resources, 2 templates, 4 prompts, stdio and HTTP            |
 | Guardrails         | Role-filtered tools, idempotent writes, human approval to destroy        |
@@ -485,9 +485,10 @@ packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         7 tests, proving the scoring catches an agent that lies
 packages/db           20 tests, against a real Postgres 17: RLS, persistence,
                       idempotency, agent attribution
+apps/web              24 tests, the routing contract and the public page
                      ---
-                     319 collected. Two of them are the placeholders that report
-                     a missing database, so with Docker up 317 run and pass.
+                     343 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 341 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:

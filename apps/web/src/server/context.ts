@@ -13,9 +13,11 @@ import {
 } from '@ledgerhand/domain'
 import { createDatabase, withUnitOfWork, type DatabaseHandle, type Session } from '@ledgerhand/db'
 import { POOL_SIZE, connectionString } from './env'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cache } from 'react'
 import { auth } from './auth'
+import { HOME_PATH, PATHNAME_HEADER, signInPathFor } from '@/lib/routes'
 
 /**
  * ---------------------------------------------------------------------------
@@ -80,10 +82,20 @@ export const currentSession = cache(async (): Promise<WebSession | null> => {
   }
 })
 
+/**
+ * The session, or the sign-in page carrying where the visitor was going.
+ *
+ * The path comes from the header `proxy.ts` stamps on every request. If
+ * it is missing -- a caller that never went through the proxy -- the
+ * redirect still happens, just without somewhere to return to, because losing
+ * a return trip is a worse outcome than a page that stays open to a signed-out
+ * visitor.
+ */
 export async function requireSession(): Promise<WebSession> {
   const session = await currentSession()
-  if (session === null) redirect('/sign-in')
-  return session
+  if (session !== null) return session
+  const pathname = (await headers()).get(PATHNAME_HEADER)
+  redirect(signInPathFor(pathname))
 }
 
 function toDomainSession(session: WebSession): Session {
@@ -154,6 +166,6 @@ export function can(session: WebSession, capability: Capability): boolean {
 /** Guards a page whose whole purpose the role cannot serve. */
 export async function requireCapabilityOrRedirect(capability: Capability): Promise<WebSession> {
   const session = await requireSession()
-  if (!can(session, capability)) redirect('/')
+  if (!can(session, capability)) redirect(HOME_PATH)
   return session
 }

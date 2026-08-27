@@ -43,7 +43,7 @@ export function Sidebar({
             </p>
             <ul className="space-y-0.5">
               {group.items.map((item) => {
-                const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+                const active = pathname.startsWith(item.href)
                 const Icon = iconFor(item.icon)
                 return (
                   <li key={item.href}>

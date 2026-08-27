@@ -26,7 +26,7 @@ export const NAVIGATION: readonly NavGroup[] = [
     label: 'Overview',
     items: [
       {
-        href: '/',
+        href: '/dashboard',
         label: 'Dashboard',
         icon: 'LayoutDashboard',
         capability: 'reports:read',

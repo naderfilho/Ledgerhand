@@ -5,6 +5,7 @@ import * as React from 'react'
 import { useActionState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
+import { CALLBACK_PARAM } from '@/lib/routes'
 import { signInAction, type SignInState } from '@/server/actions/session'
 
 // The notes are the capability table in shorthand, not a vibe. Each one names
@@ -21,13 +22,21 @@ const DEMO_ACCOUNTS = [
   },
 ] as const
 
-export function SignInForm(): React.JSX.Element {
+export function SignInForm({
+  callbackUrl,
+}: {
+  /** Where the visitor was headed when they were asked to sign in. */
+  readonly callbackUrl?: string
+}): React.JSX.Element {
   const [state, formAction, pending] = useActionState<SignInState, FormData>(signInAction, {})
   const [email, setEmail] = React.useState('guest@ledgerhand.cloud')
 
   return (
     <div className="space-y-6">
       <form action={formAction} className="space-y-4">
+        {callbackUrl === undefined ? null : (
+          <input type="hidden" name={CALLBACK_PARAM} value={callbackUrl} />
+        )}
         <Field label="E-mail" htmlFor="email" required>
           <Input
             id="email"

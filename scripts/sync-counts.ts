@@ -7,8 +7,8 @@
  * pnpm counts:check    # fails if it is stale; CI runs this
  * ```
  *
- * The testing block carries five per-package counts, a total, the number of placeholders that skip
- * without Docker, and three coverage percentages for the domain. All eight were typed by hand, and
+ * The testing block carries one count per workspace project, a total, the number of placeholders
+ * that skip without Docker, and three coverage percentages for the domain. All were typed by hand, and
  * one of them had already drifted — the block claimed 96.8% lines against the 96.9% the run
  * reports. Nothing here is hard to keep right; it is just impossible to keep right forever by
  * remembering to.
@@ -24,6 +24,7 @@ const at = (path: string): string => fileURLToPath(new URL(`../${path}`, import.
 
 interface AssertionResult {
   readonly status: string
+  readonly fullName: string
 }
 
 interface FileResult {
@@ -64,13 +65,48 @@ if (tests.numFailedTests > 0) {
   )
 }
 
-/** Tests per workspace package, counted from the file paths the reporter wrote. */
-const perPackage = new Map<string, number>()
+/**
+ * A run without the integration database is not a run this may be written from.
+ *
+ * Eighteen tests skip themselves when Postgres is not on 5433, and the figures
+ * that come back are all true about that run and all wrong about the README:
+ * the block would go on to say "eighteen of them are the placeholders that
+ * report a missing database", when two of them are and the other sixteen are
+ * row level security going unmeasured.
+ *
+ * So the check is not on the count. It is on which tests were pending: the two
+ * placeholders exist in order to be pending, and anything else pending means
+ * the run measured less than the sentence claims.
+ */
+const unmeasured = tests.testResults.flatMap((file) =>
+  file.assertionResults.filter(
+    (test) =>
+      test.status !== 'passed' && test.status !== 'failed' && !test.fullName.includes('(skipped)'),
+  ),
+)
+if (unmeasured.length > 0) {
+  throw new Error(
+    `${String(unmeasured.length)} test(s) skipped, so this run cannot be written up as a full one.\n` +
+      'Start the throwaway database and run `pnpm test:coverage` again:\n' +
+      '  docker compose -f docker/compose.yml up -d postgres-test',
+  )
+}
+
+/**
+ * Tests per workspace project, counted from the file paths the reporter wrote.
+ *
+ * Both trees, because the tests are no longer all in `packages`: the public
+ * landing page put a handful in `apps/web`, and a total that silently left them
+ * out would be exactly the drift this script exists to prevent.
+ */
+const perProject = new Map<string, number>()
 for (const file of tests.testResults) {
-  const match = /packages[\\/]([^\\/]+)[\\/]/.exec(file.name)
-  const pkg = match?.[1]
-  if (pkg === undefined) continue
-  perPackage.set(pkg, (perPackage.get(pkg) ?? 0) + file.assertionResults.length)
+  const match = /(packages|apps)[\\/]([^\\/]+)[\\/]/.exec(file.name)
+  const tree = match?.[1]
+  const project = match?.[2]
+  if (tree === undefined || project === undefined) continue
+  const key = `${tree}/${project}`
+  perProject.set(key, (perProject.get(key) ?? 0) + file.assertionResults.length)
 }
 
 /** Truncated, never rounded up: a README should not claim a tenth nobody measured. */
@@ -97,11 +133,10 @@ function replaceAligned(pattern: RegExp, value: string): void {
   })
 }
 
-for (const [pkg, count] of perPackage) {
-  const pattern = new RegExp(`(?<=packages/${pkg})( +)(\\d+)(?= tests)`)
-  const line = new RegExp(`packages/${pkg}( +)(\\d+)(?= tests)`)
-  if (!pattern.test(readme)) {
-    throw new Error(`README.md has no line for packages/${pkg}; update scripts/sync-counts.ts`)
+for (const [project, count] of perProject) {
+  const line = new RegExp(`${project}( +)(\\d+)(?= tests)`)
+  if (!line.test(readme)) {
+    throw new Error(`README.md has no line for ${project}; add one, or update this script`)
   }
   replaceAligned(line, String(count))
 }
@@ -117,6 +152,22 @@ const { lines, functions, branches } = coverage.total
 readme = readme.replace(
   /[\d.]+% lines, [\d.]+% functions, [\d.]+% branches/,
   `${truncate(lines.pct)}% lines, ${truncate(functions.pct)}% functions, ${truncate(branches.pct)}% branches`,
+)
+
+/**
+ * The same two figures again, in the summary table near the top.
+ *
+ * They were not maintained here, and the moment the testing block moved they
+ * were left claiming 317 passing against 341 -- a second copy of a number, kept
+ * by hand, drifting the first time anything changed. Which is the argument this
+ * whole file exists to make, made accidentally.
+ *
+ * Whole percent there rather than a tenth, because that row is a summary and
+ * the block below is the measurement.
+ */
+readme = readme.replace(
+  /\d+ passing, \d+% line coverage on the domain/,
+  `${String(tests.numPassedTests)} passing, ${String(Math.floor(lines.pct))}% line coverage on the domain`,
 )
 
 const figures =

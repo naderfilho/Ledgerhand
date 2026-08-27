@@ -20,23 +20,23 @@ import { run, type ActionResult } from '@/server/context'
  */
 
 const AFFECTED_ROUTES: Partial<Record<UseCaseName, readonly string[]>> = {
-  register_stock_entry: ['/stock', '/stock/movements', '/'],
-  register_stock_exit: ['/stock', '/stock/movements', '/'],
-  adjust_stock: ['/stock', '/stock/movements', '/'],
-  create_sales_order: ['/sales', '/'],
+  register_stock_entry: ['/stock', '/stock/movements', '/dashboard'],
+  register_stock_exit: ['/stock', '/stock/movements', '/dashboard'],
+  adjust_stock: ['/stock', '/stock/movements', '/dashboard'],
+  create_sales_order: ['/sales', '/dashboard'],
   update_sales_order_items: ['/sales'],
-  confirm_sales_order: ['/sales', '/stock', '/'],
-  invoice_sales_order: ['/sales', '/stock', '/finance/receivables', '/'],
-  cancel_sales_order: ['/sales', '/stock', '/finance/receivables', '/'],
+  confirm_sales_order: ['/sales', '/stock', '/dashboard'],
+  invoice_sales_order: ['/sales', '/stock', '/finance/receivables', '/dashboard'],
+  cancel_sales_order: ['/sales', '/stock', '/finance/receivables', '/dashboard'],
   create_purchase_order: ['/purchasing'],
   place_purchase_order: ['/purchasing'],
-  receive_purchase_order: ['/purchasing', '/stock', '/finance/payables', '/'],
+  receive_purchase_order: ['/purchasing', '/stock', '/finance/payables', '/dashboard'],
   cancel_purchase_order: ['/purchasing'],
-  settle_receivable: ['/finance/receivables', '/finance/cash', '/'],
-  settle_payable: ['/finance/payables', '/finance/cash', '/'],
-  reverse_settlement: ['/finance/receivables', '/finance/payables', '/finance/cash', '/'],
-  open_cash_session: ['/finance/cash', '/'],
-  close_daily_cash: ['/finance/cash', '/'],
+  settle_receivable: ['/finance/receivables', '/finance/cash', '/dashboard'],
+  settle_payable: ['/finance/payables', '/finance/cash', '/dashboard'],
+  reverse_settlement: ['/finance/receivables', '/finance/payables', '/finance/cash', '/dashboard'],
+  open_cash_session: ['/finance/cash', '/dashboard'],
+  close_daily_cash: ['/finance/cash', '/dashboard'],
 }
 
 /**

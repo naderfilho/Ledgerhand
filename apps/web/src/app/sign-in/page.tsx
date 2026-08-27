@@ -9,6 +9,7 @@ import { Logo } from '@/components/app/logo'
 import { SignInForm } from '@/components/app/sign-in-form'
 import { Wordmark } from '@/components/app/wordmark'
 import { replayFor } from '@/lib/agent-replay'
+import { CALLBACK_PARAM, safeCallbackUrl } from '@/lib/routes'
 import { currentSession } from '@/server/context'
 import { currentTranslator } from '@/server/locale'
 
@@ -40,8 +41,17 @@ const PILLARS = [
   },
 ] as const
 
-export default async function SignInPage(): Promise<React.JSX.Element> {
-  if ((await currentSession()) !== null) redirect('/')
+export default async function SignInPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<Record<string, string | string[] | undefined>>
+}): Promise<React.JSX.Element> {
+  const raw = (await searchParams)[CALLBACK_PARAM]
+  const callbackUrl = safeCallbackUrl(Array.isArray(raw) ? raw[0] : raw)
+
+  // Already signed in: honour the destination rather than dropping somebody
+  // who followed a link to a deep page onto the home screen instead.
+  if ((await currentSession()) !== null) redirect(callbackUrl)
 
   const { t, lang } = await currentTranslator()
 
@@ -175,7 +185,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
               {t('Use one of the demo accounts below to see how the role changes the application.')}
             </p>
           </div>
-          <SignInForm />
+          <SignInForm callbackUrl={callbackUrl} />
         </section>
       </main>
 
