@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { Logo } from '@/components/app/logo'
 import { Wordmark } from '@/components/app/wordmark'
 import Link from 'next/link'
 import type * as React from 'react'
@@ -25,6 +26,7 @@ export function Sidebar({
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-(--spacing-sidebar) flex-col border-r border-border bg-surface-sunken lg:flex">
       <div className="flex h-(--spacing-topbar) shrink-0 items-center gap-2.5 border-b border-border px-5">
+        <Logo className="size-7 shrink-0" />
         <div className="min-w-0">
           <Wordmark size="sm" className="block truncate" />
           <p className="truncate text-[0.6875rem] leading-tight text-muted-foreground">

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Logo } from '@/components/app/logo'
 import { Wordmark } from '@/components/app/wordmark'
 import { redirect } from 'next/navigation'
 import type * as React from 'react'
@@ -59,23 +60,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
       <div className="relative grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
         <section className="relative hidden flex-col justify-between p-10 lg:flex lg:bg-gradient-to-r lg:from-surface-sunken/70 lg:via-surface-sunken/25 lg:to-transparent">
           <div className="relative flex items-center gap-2.5">
-            <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <svg viewBox="0 0 24 24" fill="none" className="size-4.5">
-                <path
-                  d="M5 4v13.5A2.5 2.5 0 0 0 7.5 20H19"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M9 15.5 12.5 12l3 3L20 9.5"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </span>
+            <Logo className="size-9" />
             <Wordmark size="sm" />
           </div>
 
