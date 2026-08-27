@@ -71,30 +71,46 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
     // A header and a footer hold the two halves together -- without them the
     // page was two blocks floating in the dark, and the brand was a footnote.
     <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-background">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-56 -left-40 size-[46rem] rounded-full bg-primary/25 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute top-1/4 -right-48 size-[44rem] rounded-full bg-info/22 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-56 left-[38%] size-[40rem] rounded-full bg-primary/16 blur-[130px]"
-      />
+      {/* The glows live in their own clipped box. Loose in the root they
+       * reached past the footer and added two hundred pixels of scrollable
+       * nothing under it -- and clipping the root itself would have broken
+       * the sticky header and footer, which need a scrolling ancestor. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-64 -left-52 size-[40rem] rounded-full bg-primary/12 blur-[140px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-1/4 -right-48 size-[44rem] rounded-full bg-info/16 blur-[130px]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-56 left-[38%] size-[40rem] rounded-full bg-primary/16 blur-[130px]"
+        />
+      </div>
 
-      <header className="relative z-10 border-b border-border/60 backdrop-blur-sm">
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-20 w-full max-w-[92rem] items-center gap-4 px-6 lg:px-10">
           <Logo className="size-11 shrink-0" title="LedgerHand" />
           <div className="min-w-0">
             <Wordmark size="lg" className="block" />
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {t('An ERP an agent can operate')}
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {t(
+                'An open-source ERP, an MCP server and an agent that operates it under guardrails',
+              )}
             </p>
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <a
+              href={`${REPOSITORY}#the-part-that-is-not-an-erp`}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden h-9 items-center rounded-lg px-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground sm:flex"
+            >
+              {t('How it works')}
+            </a>
             <LanguageToggle lang={lang} />
             <a
               href={REPOSITORY}
@@ -163,7 +179,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
         </section>
       </main>
 
-      <footer className="relative z-10 border-t border-border/60 backdrop-blur-sm">
+      <footer className="sticky bottom-0 z-30 mt-auto border-t border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-[92rem] flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground lg:px-10">
           <p>
             {t('Designed and built by')}{' '}
@@ -174,6 +190,15 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
               className="text-foreground transition hover:text-primary"
             >
               Nader Filho
+            </a>
+            <span> &amp; </span>
+            <a
+              href="https://github.com/naderfilho"
+              target="_blank"
+              rel="noreferrer"
+              className="text-foreground transition hover:text-primary"
+            >
+              NDR Private Agency
             </a>
           </p>
           <p className="flex items-center gap-4">

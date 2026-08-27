@@ -57,6 +57,9 @@ const PT: Readonly<Record<string, string>> = {
 
   // ------------------------------------------------------------------ sign in
   'An ERP an agent can operate': 'Um ERP que um agente consegue operar',
+  'An open-source ERP, an MCP server and an agent that operates it under guardrails':
+    'Um ERP de código aberto, um servidor MCP e um agente que o opera sob proteções',
+  'How it works': 'Como funciona',
   Source: 'Código',
   'Designed and built by': 'Projetado e construído por',
   'Sign in': 'Entrar',
