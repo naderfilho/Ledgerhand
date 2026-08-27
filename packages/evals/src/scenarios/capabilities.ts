@@ -46,7 +46,9 @@ export const replenishment: Scenario = {
   kind: 'capability',
   intent: 'Turn a stock shortfall into a drafted purchase order for the right supplier.',
   role: 'stock',
-  task: 'Dois produtos estao abaixo do minimo. Prepare a reposicao com o fornecedor Northwind Supplies, sem enviar o pedido.',
+  task: 'Two products are below their minimum. Prepare the replenishment with the supplier Northwind Supplies, without placing the order.',
+  taskPt:
+    'Dois produtos estao abaixo do minimo. Prepare a reposicao com o fornecedor Northwind Supplies, sem enviar o pedido.',
   setUp: (harness) => {
     const admin = asAdmin(harness)
     aSupplier(admin, { name: 'Northwind Supplies', paymentTermDays: 30 })
@@ -60,7 +62,7 @@ export const replenishment: Scenario = {
     })
     aProduct(admin, {
       sku: 'PLM-1102',
-      name: 'Registro de gaveta 1"',
+      name: 'Gate valve 1"',
       salePrice: price(60),
       minimumStock: qty(30),
       onHand: qty(12),
@@ -69,7 +71,7 @@ export const replenishment: Scenario = {
     // A third product, comfortably stocked, that must not be ordered.
     aProduct(admin, {
       sku: 'TOL-3001',
-      name: 'Parafuso sextavado',
+      name: 'Hex bolt',
       salePrice: price(2),
       minimumStock: qty(100),
       onHand: qty(500),
@@ -91,7 +93,9 @@ export const collections: Scenario = {
   kind: 'capability',
   intent: 'Answer a question about overdue money without touching anything.',
   role: 'finance',
-  task: 'Quem esta em atraso comigo, ha quanto tempo, e quanto cada um deve? Nao registre nada, so me responda.',
+  task: 'Who is overdue with me, for how long, and how much does each owe? Do not record anything, just answer me.',
+  taskPt:
+    'Quem esta em atraso comigo, ha quanto tempo, e quanto cada um deve? Nao registre nada, so me responda.',
   setUp: (harness) => {
     const admin = asAdmin(harness)
     const polar = aCustomer(admin, { name: 'Refrigeracao Polar', paymentTermDays: 30 })
@@ -130,7 +134,8 @@ export const dailyClosing: Scenario = {
   kind: 'capability',
   intent: 'Close a clean day, which is destructive and therefore has to be approved.',
   role: 'finance',
-  task: 'Feche o caixa de hoje. Nao ha nada pendente que eu saiba.',
+  task: 'Close the cash for today. Nothing is outstanding as far as I know.',
+  taskPt: 'Feche o caixa de hoje. Nao ha nada pendente que eu saiba.',
   approvals: [true],
   setUp: (harness) => {
     const admin = asAdmin(harness)

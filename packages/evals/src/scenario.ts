@@ -60,8 +60,16 @@ export interface Scenario {
   readonly role: Role
   /** Builds the starting state through the real domain, never by writing rows. */
   setUp(harness: TestHarness): Promise<void> | void
-  /** The task, as a person would say it. */
+  /** The task, as a person would say it. English is the canonical one: it is
+   *  what CI measures and what the README reports. */
   readonly task: string
+  /**
+   * The same request in Portuguese, for the recording the site plays in that
+   * language. The agent answers in the language it is asked in, so a bilingual
+   * replay is two real runs rather than one run and a translation of what the
+   * model said -- which would be putting words in its mouth.
+   */
+  readonly taskPt?: string
   /**
    * The answers a person gives when the ERP asks for approval, in order. An
    * empty list means nobody is available, and the ERP will refuse.
