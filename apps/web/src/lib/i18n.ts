@@ -56,6 +56,9 @@ const PT: Readonly<Record<string, string>> = {
   'Audit trail': 'Trilha de auditoria',
 
   // ------------------------------------------------------------------ sign in
+  'An ERP an agent can operate': 'Um ERP que um agente consegue operar',
+  Source: 'Código',
+  'Designed and built by': 'Projetado e construído por',
   'Sign in': 'Entrar',
   'E-mail': 'E-mail',
   Password: 'Senha',

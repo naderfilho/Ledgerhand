@@ -1,16 +1,20 @@
+import { USE_CASES } from '@ledgerhand/domain'
+import { Code2 } from 'lucide-react'
 import type { Metadata } from 'next'
-import { AgentGlimpse } from '@/components/app/agent-glimpse'
-import { Logo } from '@/components/app/logo'
-import { Wordmark } from '@/components/app/wordmark'
 import { redirect } from 'next/navigation'
 import type * as React from 'react'
+import { AgentGlimpse } from '@/components/app/agent-glimpse'
+import { LanguageToggle } from '@/components/app/language-toggle'
+import { Logo } from '@/components/app/logo'
 import { SignInForm } from '@/components/app/sign-in-form'
+import { Wordmark } from '@/components/app/wordmark'
 import { replayFor } from '@/lib/agent-replay'
 import { currentSession } from '@/server/context'
 import { currentTranslator } from '@/server/locale'
-import { USE_CASES } from '@ledgerhand/domain'
 
 export const metadata: Metadata = { title: 'Sign in' }
+
+const REPOSITORY = 'https://github.com/naderfilho/Ledgerhand'
 
 /**
  * Counted from the use cases themselves. The previous copy said "ten of the
@@ -38,10 +42,12 @@ const PILLARS = [
 
 export default async function SignInPage(): Promise<React.JSX.Element> {
   if ((await currentSession()) !== null) redirect('/')
+
+  const { t, lang } = await currentTranslator()
+
   // The one act worth showing before anybody has signed in: an agent that
   // reached for something irreversible, stopped, and was allowed. Taken from
   // the recording, so the page cannot promise behaviour the agent lacks.
-  const { t, lang } = await currentTranslator()
   const act = replayFor(lang).acts.find((entry) => entry.name === 'daily-closing')
   const approval = act?.beats.find((beat) => beat.kind === 'approval')
   const glimpse =
@@ -50,7 +56,7 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
       : {
           question: act.task,
           // The first sentence of what the ERP asked. The whole message is a
-          // paragraph, and this card is four lines tall.
+          // paragraph, and this card is a few lines tall.
           decision: `${approval.message.split('.')[0] ?? approval.message}?`,
           approved: approval.approved,
           steps: act.beats
@@ -60,13 +66,11 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
         }
 
   return (
-    // One atmosphere, not two screens. The glows belong to the page rather
-    // than to the left column: confined there by `overflow-hidden`, they made
-    // the marketing half look lit and the form half look switched off, and the
-    // seam between two different fills read as a join between two pages. Now a
-    // single ground carries both, the light crosses the middle, and the split
-    // is a veil and a hairline instead of a change of colour.
-    <div className="relative min-h-dvh overflow-x-clip bg-background">
+    // One atmosphere rather than two screens: the glows belong to the page, so
+    // the light crosses the middle instead of stopping at the column boundary.
+    // A header and a footer hold the two halves together -- without them the
+    // page was two blocks floating in the dark, and the brand was a footnote.
+    <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-background">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-56 -left-40 size-[46rem] rounded-full bg-primary/25 blur-[120px]"
@@ -80,69 +84,111 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
         className="pointer-events-none absolute -bottom-56 left-[38%] size-[40rem] rounded-full bg-primary/16 blur-[130px]"
       />
 
-      <div className="relative grid min-h-dvh items-stretch lg:grid-cols-[1.1fr_1fr]">
-        <section className="relative hidden flex-col justify-between gap-8 p-10 lg:flex lg:bg-gradient-to-r lg:from-surface-sunken/95 lg:via-surface-sunken/70 lg:to-transparent">
-          <div className="relative flex items-center gap-2.5">
-            <Logo className="size-9" />
-            <Wordmark size="sm" />
+      <header className="relative z-10 border-b border-border/60 backdrop-blur-sm">
+        <div className="mx-auto flex h-20 w-full max-w-[92rem] items-center gap-4 px-6 lg:px-10">
+          <Logo className="size-11 shrink-0" title="LedgerHand" />
+          <div className="min-w-0">
+            <Wordmark size="lg" className="block" />
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t('An ERP an agent can operate')}
+            </p>
           </div>
 
-          <div className="relative max-w-xl space-y-6">
-            <div className="space-y-3">
-              <h1 className="font-display text-3xl leading-[1.15] font-semibold tracking-tight text-balance lg:text-[2.25rem]">
-                An ERP is the hard part. Letting an AI agent run it safely is the interesting part.
-              </h1>
-              <p className="max-w-lg text-base leading-relaxed text-muted-foreground">
-                A working system for a small trading company, built so that an agent can operate it
-                without anybody having to trust the agent.
-              </p>
-            </div>
+          <div className="ml-auto flex items-center gap-2">
+            <LanguageToggle lang={lang} />
+            <a
+              href={REPOSITORY}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-medium text-muted-foreground transition hover:border-border-strong hover:text-foreground"
+            >
+              <Code2 className="size-4" />
+              <span className="hidden sm:inline">{t('Source')}</span>
+            </a>
+          </div>
+        </div>
+      </header>
 
-            <ul className="space-y-4">
-              {PILLARS.map((pillar, index) => (
-                <li key={pillar.title} className="flex gap-3">
-                  <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[0.625rem] font-semibold text-muted-foreground">
-                    {index + 1}
-                  </span>
-                  <div className="space-y-0.5">
-                    <p className="text-[0.9375rem] font-medium">{pillar.title}</p>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{pillar.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            {glimpse === null ? null : (
-              <AgentGlimpse
-                label={t('A recorded run')}
-                steps={glimpse.steps}
-                question={glimpse.question}
-                backstageLabel={t('Backstage')}
-                meaningLabel={t('What is happening')}
-                decision={glimpse.decision}
-                approved={glimpse.approved}
-                answerLabel={glimpse.approved ? t('Approved') : t('Refused')}
-              />
-            )}
+      <main className="relative z-10 mx-auto grid w-full max-w-[92rem] flex-1 items-center gap-12 px-6 py-12 lg:grid-cols-[1.05fr_minmax(0,26rem)] lg:gap-16 lg:px-10">
+        <section className="hidden max-w-2xl space-y-7 lg:block">
+          <div className="space-y-4">
+            <h1 className="font-display text-[2.6rem] leading-[1.1] font-semibold tracking-tight text-balance">
+              {t(
+                'An ERP is the hard part. Letting an AI agent run it safely is the interesting part.',
+              )}
+            </h1>
+            <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
+              {t(
+                'A working system for a small trading company, built so that an agent can operate it without anybody having to trust the agent.',
+              )}
+            </p>
           </div>
 
-          <p className="relative text-xs text-muted-foreground">
-            PolyForm Noncommercial &middot; github.com/naderfilho/Ledgerhand
+          <ul className="space-y-4">
+            {PILLARS.map((pillar, index) => (
+              <li key={pillar.title} className="flex gap-3.5">
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[0.6875rem] font-semibold text-muted-foreground">
+                  {index + 1}
+                </span>
+                <div className="space-y-1">
+                  <p className="text-[0.9375rem] font-medium">{t(pillar.title)}</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{t(pillar.body)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {glimpse === null ? null : (
+            <AgentGlimpse
+              label={t('A recorded run')}
+              steps={glimpse.steps}
+              question={glimpse.question}
+              backstageLabel={t('Backstage')}
+              meaningLabel={t('What is happening')}
+              decision={glimpse.decision}
+              approved={glimpse.approved}
+              answerLabel={glimpse.approved ? t('Approved') : t('Refused')}
+            />
+          )}
+        </section>
+
+        <section className="mx-auto w-full max-w-md rounded-2xl border border-border bg-surface/70 p-7 shadow-[var(--shadow-raised)] backdrop-blur-sm lg:p-8">
+          <div className="mb-6 space-y-1.5">
+            <h2 className="font-display text-2xl font-semibold tracking-tight">{t('Sign in')}</h2>
+            <p className="text-sm text-muted-foreground">
+              {t('Use one of the demo accounts below to see how the role changes the application.')}
+            </p>
+          </div>
+          <SignInForm />
+        </section>
+      </main>
+
+      <footer className="relative z-10 border-t border-border/60 backdrop-blur-sm">
+        <div className="mx-auto flex w-full max-w-[92rem] flex-wrap items-center justify-between gap-3 px-6 py-5 text-xs text-muted-foreground lg:px-10">
+          <p>
+            {t('Designed and built by')}{' '}
+            <a
+              href="https://github.com/naderfilho"
+              target="_blank"
+              rel="noreferrer"
+              className="text-foreground transition hover:text-primary"
+            >
+              Nader Filho
+            </a>
           </p>
-        </section>
-
-        <section className="relative flex items-center justify-center px-5 py-12">
-          <div className="w-full max-w-sm space-y-7">
-            <div className="space-y-1.5">
-              <h2 className="text-xl font-semibold tracking-tight">Sign in</h2>
-              <p className="text-sm text-muted-foreground">
-                Use one of the demo accounts below to see how the role changes the application.
-              </p>
-            </div>
-            <SignInForm />
-          </div>
-        </section>
-      </div>
+          <p className="flex items-center gap-4">
+            <span>PolyForm Noncommercial</span>
+            <a
+              href={REPOSITORY}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:text-foreground"
+            >
+              github.com/naderfilho/Ledgerhand
+            </a>
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
