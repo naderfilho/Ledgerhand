@@ -4,6 +4,7 @@ import { Brain, Check, Pause, Play, RotateCcw, ShieldAlert, Terminal, X } from '
 import * as React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { NeuralField } from '@/components/app/neural-field'
 import type { Beat, ReplayAct } from '@/lib/agent-replay'
 
 /**
@@ -126,8 +127,11 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-surface">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border p-4">
+      <div className="relative overflow-hidden rounded-xl border border-border bg-surface">
+        {/* Something is working behind this, and the screen should say so. */}
+        <NeuralField columns={9} rows={4} intensity={finished ? 0.3 : playing ? 0.85 : 0.45} />
+
+        <div className="relative flex flex-wrap items-start justify-between gap-4 border-b border-border p-4">
           <div className="min-w-0 space-y-1.5">
             <p className="text-sm text-muted-foreground">{act.subtitle}</p>
             <p className="text-sm">
@@ -155,15 +159,15 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
           </div>
         </div>
 
-        <div className="h-0.5 bg-muted">
+        <div className="relative h-0.5 bg-muted">
           <div
             className="h-full bg-primary transition-[width] duration-500 ease-linear"
             style={{ width: `${String(Math.round(share * 100))}%` }}
           />
         </div>
 
-        <div className="grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-          <div className="border-b border-border bg-surface-sunken/60 p-4 lg:border-r lg:border-b-0">
+        <div className="relative grid lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+          <div className="border-b border-border bg-surface-sunken/70 p-4 lg:border-r lg:border-b-0">
             <div className="mb-3 flex items-center justify-between">
               <p className="flex items-center gap-1.5 text-[0.6875rem] font-medium tracking-wider text-muted-foreground uppercase">
                 <Terminal className="size-3.5" />
@@ -267,6 +271,7 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
                   <span
                     className={
                       'mt-1.5 size-1.5 shrink-0 rounded-full ' +
+                      (index === step && !finished ? 'animate-ping-slow ' : '') +
                       (toneFor(beat) === 'refused'
                         ? 'bg-danger'
                         : toneFor(beat) === 'approved'

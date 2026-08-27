@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import type * as React from 'react'
+import { NeuralField } from '@/components/app/neural-field'
 import { SalesTrend } from '@/components/app/sales-trend'
 import { StatCard } from '@/components/app/stat-card'
 import { Badge } from '@/components/ui/badge'
@@ -109,23 +110,38 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
   return (
     <>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">
-            {data.businessDate === '' ? null : formatDate(data.businessDate)}
-          </p>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Good to see you, {session.name.split(' ')[0]}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Here is what {session.tenantName} needs from you today.
-          </p>
+      {/* The first screen anybody sees, so it carries the claim as well as the
+       * numbers. The field behind it is ambient rather than informative: what
+       * it says is that the application is attached to something working, and
+       * the link says where to go and watch that happen. */}
+      <header className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
+        <NeuralField columns={10} rows={4} intensity={0.9} />
+        <div className="relative flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-2xl space-y-3">
+            <p className="text-[0.6875rem] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+              {data.businessDate === '' ? null : formatDate(data.businessDate)}
+            </p>
+            <h1 className="font-display text-2xl leading-tight font-semibold tracking-tight text-balance sm:text-3xl">
+              Good to see you, {session.name.split(' ')[0]}
+            </h1>
+            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              Here is what {session.tenantName} needs from you today. An agent can do part of it
+              too, under rules this system enforces rather than asks for.
+            </p>
+            <Link
+              href="/agent"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition hover:text-primary-hover"
+            >
+              Watch the agent work
+              <ArrowUpRight className="size-4" />
+            </Link>
+          </div>
+          {data.cash !== null ? (
+            <Badge tone={data.cash.status === 'open' ? 'info' : 'neutral'}>
+              Cash {data.cash.status === 'not_opened' ? 'not opened' : data.cash.status}
+            </Badge>
+          ) : null}
         </div>
-        {data.cash !== null ? (
-          <Badge tone={data.cash.status === 'open' ? 'info' : 'neutral'}>
-            Cash {data.cash.status === 'not_opened' ? 'not opened' : data.cash.status}
-          </Badge>
-        ) : null}
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

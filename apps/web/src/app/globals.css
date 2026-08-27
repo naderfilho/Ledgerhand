@@ -275,6 +275,12 @@
   .animate-in-up {
     animation: in-up 0.28s var(--ease-out-quart) both;
   }
+
+  /* The beat the replay is on, breathing, so a paused screen still reads as
+   * a live one. Scale rather than a ring: the dot keeps its colour token. */
+  .animate-ping-slow {
+    animation: ping-slow 1.7s var(--ease-out-quart) infinite;
+  }
 }
 
 @keyframes in-up {
@@ -285,6 +291,18 @@
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+@keyframes ping-slow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.9);
+    opacity: 0.45;
   }
 }
 
