@@ -479,7 +479,7 @@ Each is written up in [`docs/adr`](docs/adr) with the alternatives that were rej
 ## Testing
 
 ```
-packages/domain      249 tests, 96.9% lines, 95.8% functions, 86.8% branches
+packages/domain      249 tests, 96.8% lines, 95.8% functions, 86.8% branches
 packages/mcp-server   25 tests, driven by a real MCP client over an in-memory transport
 packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         7 tests, proving the scoring catches an agent that lies
