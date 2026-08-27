@@ -232,7 +232,11 @@ export function NeuralBrain({
     const random = createRandom(seed ^ 0xa11ce)
     const { points, edges, links } = geometry
 
-    const glows = [makeGlow(6), makeGlow(10), makeGlow(16)]
+    // Glow sprites scale with the canvas. At a fixed radius a flare that is a
+    // soft halo on a 480px canvas is half the width of a 72px one, and clipping
+    // it at the edge draws the canvas's own square in light.
+    const glowScale = Math.max(0.3, Math.min(1, size / 480))
+    const glows = [makeGlow(6 * glowScale), makeGlow(10 * glowScale), makeGlow(16 * glowScale)]
     const projected = points.map(() => ({ x: 0, y: 0, depth: 0, scale: 1 }))
     const charge = new Float32Array(points.length)
     const pulses: Pulse[] = Array.from({ length: MAX_PULSES }, () => ({
@@ -292,6 +296,37 @@ export function NeuralBrain({
       slot.retreating = retreating
     }
 
+    /**
+     * The pointer lights what it is near: nodes swell and the links between
+     * them pick up, so moving across the mesh disturbs something rather than
+     * sliding over a picture. It does not turn the brain -- a decoration that
+     * takes the drag gesture is a decoration that steals it from the page.
+     */
+    let hoverX = Number.NaN
+    let hoverY = Number.NaN
+
+    const toLocal = (event: PointerEvent): { x: number; y: number } => {
+      const rect = canvas.getBoundingClientRect()
+      return { x: event.clientX - rect.left, y: event.clientY - rect.top }
+    }
+
+    const onPointerMove = (event: PointerEvent): void => {
+      const local = toLocal(event)
+      hoverX = local.x
+      hoverY = local.y
+      // With the loop paused -- reduced motion, a hidden tab, a canvas out of
+      // view -- hovering still has to show, or the highlight never appears.
+      repaint?.()
+    }
+    const onPointerLeave = (): void => {
+      hoverX = Number.NaN
+      hoverY = Number.NaN
+      repaint?.()
+    }
+
+    canvas.addEventListener('pointermove', onPointerMove, { passive: true })
+    canvas.addEventListener('pointerleave', onPointerLeave)
+
     const still = window.matchMedia('(prefers-reduced-motion: reduce)')
 
     let angle = 0
@@ -331,17 +366,22 @@ export function NeuralBrain({
         frozen: to.frozen,
       }
 
+      // Auto-drift only while nobody is holding it.
       angle += mood.spin * delta
       context.clearRect(0, 0, width, height)
 
       // Project once per frame into the cached array.
       const cx = width / 2
       const cy = height / 2
-      const radius = Math.min(width, height) * 0.36
-      const cos = Math.cos(angle)
-      const sin = Math.sin(angle)
-      const cosTilt = Math.cos(TILT)
-      const sinTilt = Math.sin(TILT)
+      // Room for the glow: a node at the silhouette can flare outward, and it
+      // has to have somewhere to do that other than the canvas boundary.
+      const radius = Math.min(width, height) * 0.31
+      const yaw = angle
+      const pitch = TILT
+      const cos = Math.cos(yaw)
+      const sin = Math.sin(yaw)
+      const cosTilt = Math.cos(pitch)
+      const sinTilt = Math.sin(pitch)
 
       for (let index = 0; index < points.length; index += 1) {
         const point = points[index]
@@ -360,6 +400,15 @@ export function NeuralBrain({
         slot.scale = perspective
       }
 
+      // 1 under the cursor, 0 at arm's length. Scaled to the canvas so a small
+      // brain is not entirely lit by one hover.
+      const reach = Math.max(60, Math.min(width, height) * 0.34)
+      const nearPointer = (x: number, y: number): number => {
+        if (Number.isNaN(hoverX)) return 0
+        const distance = Math.hypot(x - hoverX, y - hoverY)
+        return distance > reach ? 0 : 1 - distance / reach
+      }
+
       context.globalCompositeOperation = 'lighter'
 
       // Edges, dimmest and first.
@@ -374,7 +423,8 @@ export function NeuralBrain({
         const fade = 0.45 + 0.55 * ((nearness + 1) / 2)
         let colour = EDGE
         if (mood.wash !== null) colour = mix(colour, mood.wash, mood.washAmount)
-        context.strokeStyle = rgba(colour, mood.meshAlpha * fade)
+        const lit = Math.max(nearPointer(a.x, a.y), nearPointer(b.x, b.y))
+        context.strokeStyle = rgba(colour, mood.meshAlpha * fade + lit * 0.5)
         context.beginPath()
         context.moveTo(a.x, a.y)
         context.lineTo(b.x, b.y)
@@ -459,7 +509,8 @@ export function NeuralBrain({
         if (heat > 0) colour = mix(colour, WHITE, heat * 0.8)
         if (mood.wash !== null) colour = mix(colour, mood.wash, mood.washAmount)
 
-        const alpha = mood.nodeAlpha * fade * quiet * (0.55 + heat * 0.45)
+        const close = nearPointer(slot.x, slot.y)
+        const alpha = mood.nodeAlpha * fade * quiet * (0.55 + heat * 0.45) + close * 0.5
         if (heat > 0.05) {
           const glow = glows[heat > 0.6 ? 2 : 1]
           if (glow !== undefined) {
@@ -471,7 +522,7 @@ export function NeuralBrain({
         }
         context.fillStyle = rgba(colour, alpha)
         context.beginPath()
-        context.arc(slot.x, slot.y, (1 + heat * 1.6) * slot.scale, 0, Math.PI * 2)
+        context.arc(slot.x, slot.y, (1 + heat * 1.6 + close * 1.8) * slot.scale, 0, Math.PI * 2)
         context.fill()
       }
 
@@ -506,6 +557,8 @@ export function NeuralBrain({
 
     return () => {
       window.cancelAnimationFrame(frame)
+      canvas.removeEventListener('pointermove', onPointerMove)
+      canvas.removeEventListener('pointerleave', onPointerLeave)
       sizeObserver.disconnect()
       visibility.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)

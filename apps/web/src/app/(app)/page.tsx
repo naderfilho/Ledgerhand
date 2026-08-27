@@ -113,9 +113,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
   return (
     <>
       {/* The first screen anybody sees, so it carries the claim as well as the
-       * numbers. The field behind it is ambient rather than informative: what
-       * it says is that the application is attached to something working, and
-       * the link says where to go and watch that happen. */}
+       * numbers, and the link says where to go and watch the claim happen. */}
       <header className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
         <div className="relative flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl space-y-3">
@@ -138,11 +136,15 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
+          {/* Absolute, so a bigger brain does not make a taller card: the header
+           * is as tall as its words, and this sits beside them. The projection
+           * leaves a wide margin inside the canvas, so the rounded corner clips
+           * empty pixels rather than the mesh. */}
           <NeuralBrain
             state="idle"
-            size={200}
-            pointCount={320}
-            className="hidden shrink-0 opacity-80 lg:block"
+            size={300}
+            pointCount={460}
+            className="pointer-events-auto absolute top-1/2 right-4 hidden -translate-y-1/2 opacity-90 lg:block"
           />
           {data.cash !== null ? (
             <Badge tone={data.cash.status === 'open' ? 'info' : 'neutral'}>
