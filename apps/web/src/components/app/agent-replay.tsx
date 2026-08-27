@@ -52,7 +52,39 @@ function thousands(value: number): string {
   return value >= 1000 ? `${(value / 1000).toFixed(1)}k` : String(value)
 }
 
-export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): React.JSX.Element {
+/**
+ * The chrome arrives translated rather than translating itself: a client
+ * component that imported the dictionary would ship every string in it to the
+ * browser to render fourteen.
+ */
+export interface ReplayLabels {
+  readonly guardrail: string
+  readonly capability: string
+  readonly actingFor: string
+  readonly whoAsked: string
+  readonly pause: string
+  readonly play: string
+  readonly replay: string
+  readonly backstage: string
+  readonly calls: string
+  readonly exchanges: string
+  readonly whatIsHappening: string
+  readonly approvalGranted: string
+  readonly approvalRefused: string
+  readonly refusedByTheErp: string
+  readonly stoppedAndAsked: string
+  readonly approved: string
+  readonly refused: string
+  readonly checkedAfterwards: string
+}
+
+export function AgentReplay({
+  acts,
+  labels,
+}: {
+  readonly acts: readonly ReplayAct[]
+  readonly labels: ReplayLabels
+}): React.JSX.Element {
   const [actIndex, setActIndex] = React.useState(0)
   const [step, setStep] = React.useState(0)
   const [playing, setPlaying] = React.useState(true)
@@ -120,7 +152,7 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
             }
           >
             <span className="mb-1 block text-[0.6875rem] tracking-wide uppercase opacity-70">
-              {entry.kind === 'guardrail' ? 'Guardrail' : 'Capability'}
+              {entry.kind === 'guardrail' ? labels.guardrail : labels.capability}
             </span>
             <span className="block text-sm leading-snug font-medium">{entry.title}</span>
           </button>
@@ -129,15 +161,15 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
 
       <div className="relative overflow-hidden rounded-xl border border-border bg-surface">
         {/* Something is working behind this, and the screen should say so. */}
-        <NeuralField columns={9} rows={4} intensity={finished ? 0.3 : playing ? 0.85 : 0.45} />
+        <NeuralField columns={7} rows={3} intensity={finished ? 0.3 : playing ? 0.85 : 0.45} />
 
         <div className="relative flex flex-wrap items-start justify-between gap-4 border-b border-border p-4">
           <div className="min-w-0 space-y-1.5">
             <p className="text-sm text-muted-foreground">{act.subtitle}</p>
             <p className="text-sm">
-              <span className="text-muted-foreground">Acting for </span>
+              <span className="text-muted-foreground">{labels.actingFor} </span>
               <Badge tone="neutral">{act.role}</Badge>
-              <span className="text-muted-foreground">, who asked: </span>
+              <span className="text-muted-foreground">{labels.whoAsked} </span>
               <span className="text-foreground">{act.task}</span>
             </p>
           </div>
@@ -150,11 +182,11 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
               disabled={finished}
             >
               {playing ? <Pause /> : <Play />}
-              {playing ? 'Pause' : 'Play'}
+              {playing ? labels.pause : labels.play}
             </Button>
             <Button variant="secondary" onClick={restart}>
               <RotateCcw />
-              Replay
+              {labels.replay}
             </Button>
           </div>
         </div>
@@ -171,10 +203,10 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
             <div className="mb-3 flex items-center justify-between">
               <p className="flex items-center gap-1.5 text-[0.6875rem] font-medium tracking-wider text-muted-foreground uppercase">
                 <Terminal className="size-3.5" />
-                Backstage
+                {labels.backstage}
               </p>
               <p className="font-mono text-[0.6875rem] text-muted-foreground tabular-nums">
-                {seconds(elapsed)} · {String(callsSoFar)} calls
+                {seconds(elapsed)} · {String(callsSoFar)} {labels.calls}
               </p>
             </div>
 
@@ -204,7 +236,7 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
                           }
                         >
                           <ShieldAlert className="size-3.5 shrink-0" />
-                          {beat.approved ? 'approval granted' : 'approval refused'}
+                          {beat.approved ? labels.approvalGranted : labels.approvalRefused}
                         </span>
                       ) : beat.kind === 'thought' ? (
                         <span className="flex min-w-0 flex-1 items-start gap-1.5 text-muted-foreground italic">
@@ -235,7 +267,7 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
                               (tone === 'refused' ? 'text-danger' : 'text-muted-foreground/70')
                             }
                           >
-                            &larr; {beat.refused ? 'refused by the ERP · ' : ''}
+                            &larr; {beat.refused ? labels.refusedByTheErp + ' · ' : ''}
                             {beat.result}
                           </span>
                         </span>
@@ -249,14 +281,15 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
             {finished ? (
               <p className="mt-3 border-t border-border pt-3 font-mono text-[0.6875rem] text-muted-foreground tabular-nums">
                 {thousands(act.spend.inputTokens)} in · {thousands(act.spend.outputTokens)} out ·{' '}
-                {act.spend.costUsd.toFixed(4)} USD · {String(act.spend.exchanges)} exchanges
+                {act.spend.costUsd.toFixed(4)} USD · {String(act.spend.exchanges)}{' '}
+                {labels.exchanges}
               </p>
             ) : null}
           </div>
 
           <div className="relative min-h-[22rem] p-5">
             <p className="mb-4 text-[0.6875rem] font-medium tracking-wider text-muted-foreground uppercase">
-              What is happening
+              {labels.whatIsHappening}
             </p>
 
             <ol className="space-y-3.5">
@@ -295,19 +328,19 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
               >
                 <p className="flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
                   <ShieldAlert className="size-4" />
-                  The ERP stopped and asked a person
+                  {labels.stoppedAndAsked}
                 </p>
                 <p className="mt-2 text-sm text-foreground">{awaiting.message}</p>
                 <p className="mt-3 flex items-center gap-2 text-sm font-medium">
                   {awaiting.approved ? (
                     <>
                       <Check className="size-4 text-positive" />
-                      Approved
+                      {labels.approved}
                     </>
                   ) : (
                     <>
                       <X className="size-4 text-danger" />
-                      Refused
+                      {labels.refused}
                     </>
                   )}
                 </p>
@@ -317,7 +350,7 @@ export function AgentReplay({ acts }: { readonly acts: readonly ReplayAct[] }): 
             {finished ? (
               <div className="mt-5 border-t border-border pt-4">
                 <p className="text-[0.6875rem] font-medium tracking-wider text-muted-foreground uppercase">
-                  Checked against the database afterwards
+                  {labels.checkedAfterwards}
                 </p>
                 <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
                   {act.checks.map((check) => (

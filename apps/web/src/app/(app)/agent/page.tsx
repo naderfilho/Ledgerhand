@@ -3,14 +3,37 @@ import type * as React from 'react'
 import { AgentReplay } from '@/components/app/agent-replay'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { REPLAY } from '@/lib/agent-replay'
+import { currentTranslator } from '@/server/locale'
 
 export const metadata: Metadata = { title: 'The agent' }
 
-export default function AgentPage(): React.JSX.Element {
+export default async function AgentPage(): Promise<React.JSX.Element> {
+  const { t } = await currentTranslator()
+  const labels = {
+    guardrail: t('Guardrail'),
+    capability: t('Capability'),
+    actingFor: t('Acting for'),
+    whoAsked: t(', who asked:'),
+    pause: t('Pause'),
+    play: t('Play'),
+    replay: t('Replay'),
+    backstage: t('Backstage'),
+    calls: t('calls'),
+    exchanges: t('exchanges'),
+    whatIsHappening: t('What is happening'),
+    approvalGranted: t('approval granted'),
+    approvalRefused: t('approval refused'),
+    refusedByTheErp: t('refused by the ERP'),
+    stoppedAndAsked: t('The ERP stopped and asked a person'),
+    approved: t('Approved'),
+    refused: t('Refused'),
+    checkedAfterwards: t('Checked against the database afterwards'),
+  }
+
   return (
     <div className="space-y-6">
       <header className="space-y-2">
-        <h1 className="text-xl font-semibold tracking-tight">The agent</h1>
+        <h1 className="text-xl font-semibold tracking-tight">{t('The agent')}</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           An agent is only useful in production when the system, not the prompt, decides what it may
           do. Six recorded runs, below: the tool that is never offered, a person who approves, a
@@ -19,12 +42,12 @@ export default function AgentPage(): React.JSX.Element {
         </p>
       </header>
 
-      <AgentReplay acts={REPLAY.acts} />
+      <AgentReplay acts={REPLAY.acts} labels={labels} />
 
       <Card>
         <CardHeader>
-          <CardTitle>Why this is a replay</CardTitle>
-          <CardDescription>These are real runs, not a mock-up of one.</CardDescription>
+          <CardTitle>{t('Why this is a replay')}</CardTitle>
+          <CardDescription>{t('These are real runs, not a mock-up of one.')}</CardDescription>
         </CardHeader>
         <CardBody className="space-y-3 text-sm leading-relaxed text-muted-foreground">
           <p>

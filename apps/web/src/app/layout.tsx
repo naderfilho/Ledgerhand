@@ -34,13 +34,20 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({
+import { currentLanguage } from '@/server/locale'
+
+export default async function RootLayout({
   children,
 }: {
   readonly children: React.ReactNode
-}): React.JSX.Element {
+}): Promise<React.JSX.Element> {
+  // The document has to declare the language it is actually in. Marked `en`
+  // while rendering Portuguese, a browser offers to translate the page and
+  // then translates the product name along with it.
+  const lang = await currentLanguage()
+
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable + ' ' + poppins.variable}>
+    <html lang={lang} suppressHydrationWarning className={inter.variable + ' ' + poppins.variable}>
       <body className="min-h-dvh antialiased">
         <Providers>{children}</Providers>
       </body>

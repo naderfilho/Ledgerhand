@@ -20,6 +20,7 @@ export function Wordmark({
 
   return (
     <span
+      translate="no"
       className={cn('font-display leading-none font-semibold tracking-tight', scale, className)}
     >
       <span className="text-foreground">Ledger</span>

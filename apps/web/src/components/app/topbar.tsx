@@ -3,6 +3,8 @@
 import type { Role } from '@ledgerhand/domain'
 import { LogOut, Menu, Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { LanguageToggle } from '@/components/app/language-toggle'
+import type { Lang } from '@/lib/i18n'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
@@ -37,6 +39,7 @@ export function Topbar({
   role,
   tenantName,
   signOutAction,
+  lang,
 }: {
   readonly groups: readonly NavGroup[]
   readonly name: string
@@ -44,6 +47,7 @@ export function Topbar({
   readonly role: Role
   readonly tenantName: string
   readonly signOutAction: () => Promise<void>
+  readonly lang: Lang
 }): React.JSX.Element {
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const { setTheme, resolvedTheme } = useTheme()
@@ -76,6 +80,8 @@ export function Topbar({
       <CommandPalette groups={groups} />
 
       <div className="flex-1" />
+
+      <LanguageToggle lang={lang} />
 
       <Button
         variant="ghost"

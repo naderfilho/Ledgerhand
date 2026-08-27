@@ -7,25 +7,26 @@ import { cn } from '@/lib/utils'
  * ---------------------------------------------------------------------------
  * Something is thinking behind this
  * ---------------------------------------------------------------------------
- * Signals travel the edges as streaks. When one arrives, the node it reaches
- * takes the charge -- flaring, shifting colour -- and fires onward down its own
- * edges. So what crosses the field is a cascade rather than a loop: it spreads,
- * it forks, it dies out, and it is seeded again where it has gone quiet.
+ * Signals do not cross one edge and stop. Each is a traveller: it runs a link,
+ * lights the node it reaches in its own colour, waits, chooses somewhere else
+ * to go, and carries on until it runs out of hops. What crosses the field is a
+ * route being walked -- forking, doubling back, dying out in one corner while
+ * another lights up.
+ *
+ * The waiting is what keeps the rhythm. Every traveller has its own speed and
+ * pauses for its own length at each stop, so nothing fires on a beat and the
+ * field never pulses in time with itself.
+ *
+ * Restraint is the other half of the design, and the harder half. This sits
+ * under content: a mesh dense enough to notice is a mesh that competes with
+ * the words on top of it, and content it obscures is a net loss however good it
+ * looks. So the lattice is sparse, the resting links are barely drawn, and only
+ * the few signals actually moving are allowed to be bright.
  *
  * It is decoration, and it says so. It is not a visualisation of the agent --
  * that would be a lie, because the agent is a language model and not a graph.
- * What it is for is the impression a static page cannot give: that the screen
- * is attached to something working.
- *
- * The layout is a jittered lattice: even coverage, so no corner is bare, and
- * no two nodes in a row, so it never reads as graph paper. It comes from the
- * seeded generator the demo data already uses, because `Math.random` is not
- * available in this repository and the field has to be the same on the server
- * and the client anyway.
- *
- * Near the pointer, nodes swell, lines pick up, and the field leans very
- * slightly away, so moving across it disturbs something rather than sliding
- * over a picture.
+ * It is here for the impression a static page cannot give: that the screen is
+ * attached to something working.
  */
 
 /** Deterministic PRNG (mulberry32), the same one the seed uses. */
@@ -45,10 +46,9 @@ type Rgb = readonly [number, number, number]
 /**
  * The theme tokens are oklch(), and `fillStyle` hands them back as lab() --
  * reading the numbers out of that string yields lab coordinates pretending to
- * be RGB, which is a muddy brown where the accent should be. So the colour is
- * painted onto a single pixel and read back through the canvas's own
- * conversion, which is the only one guaranteed to agree with what it draws.
- * Once at setup, never per frame.
+ * be RGB, a muddy brown where the accent should be. So the colour is painted
+ * onto one pixel and read back through the canvas's own conversion, which is
+ * the only one guaranteed to agree with what it draws.
  */
 function resolve(value: string, fallback: Rgb): Rgb {
   if (value === '') return fallback
@@ -68,10 +68,22 @@ function resolve(value: string, fallback: Rgb): Rgb {
   }
 }
 
-function mix(a: Rgb, b: Rgb, amount: number): string {
-  const t = Math.min(Math.max(amount, 0), 1)
-  const channel = (index: 0 | 1 | 2): number => Math.round(a[index] + (b[index] - a[index]) * t)
-  return `rgb(${String(channel(0))} ${String(channel(1))} ${String(channel(2))})`
+/**
+ * Deliberately not theme tokens. These read as something signalling rather
+ * than as interface, and they have to stay apart from each other at two pixels
+ * wide on a near-black ground, which the semantic palette is not built for.
+ */
+const NEON: readonly Rgb[] = [
+  [64, 255, 170],
+  [255, 78, 112],
+  [255, 214, 64],
+  [88, 214, 255],
+  [178, 132, 255],
+]
+
+function rgba(colour: Rgb, alpha: number): string {
+  const clamped = Math.min(Math.max(alpha, 0), 1)
+  return `rgba(${String(colour[0])}, ${String(colour[1])}, ${String(colour[2])}, ${String(clamped)})`
 }
 
 interface Node {
@@ -80,39 +92,50 @@ interface Node {
   readonly neighbours: number[]
   /** 1 the instant a signal lands, decaying towards 0. */
   charge: number
+  /** Whatever colour last arrived here. */
+  colour: Rgb
 }
 
-interface Signal {
-  readonly from: number
-  readonly to: number
-  readonly speed: number
+interface Traveller {
+  from: number
+  to: number
   progress: number
+  /** Seconds still to wait at the node it just reached. */
+  waiting: number
+  readonly speed: number
+  readonly colour: Rgb
+  hops: number
 }
 
-const REACH = 170
-const LEAN = 9
-/** How long a node stays lit, and how far a streak trails behind its head. */
-const DECAY_PER_SECOND = 1.9
-const TAIL = 0.34
-const MAX_SIGNALS = 120
+const REACH = 165
+const LEAN = 7
+/** Slow enough to follow with your eyes, with a long tail behind the head. */
+const SLOWEST = 0.2
+const FASTEST = 0.55
+const TAIL = 0.5
+const DECAY_PER_SECOND = 0.8
+/** Few, on purpose. Traffic is what is allowed to be bright, so there is not
+ *  much of it. */
+const MOST_TRAVELLERS = 9
+const FEWEST_TRAVELLERS = 4
 
 function buildLattice(columns: number, rows: number, seed: number): Node[] {
   const random = createRandom(seed)
   const nodes: Node[] = []
   for (let column = 0; column < columns; column += 1) {
     for (let row = 0; row < rows; row += 1) {
-      // Jitter is most of a cell, so the lattice never shows through.
       nodes.push({
-        x: (column + 0.5 + (random() - 0.5) * 0.85) / columns,
-        y: (row + 0.5 + (random() - 0.5) * 0.85) / rows,
+        x: (column + 0.5 + (random() - 0.5) * 0.8) / columns,
+        y: (row + 0.5 + (random() - 0.5) * 0.8) / rows,
         neighbours: [],
         charge: 0,
+        colour: NEON[3] ?? [88, 214, 255],
       })
     }
   }
 
-  // Each node keeps its three nearest, which makes a connected mesh without
-  // the distance threshold that leaves lonely nodes at low densities.
+  // Two nearest each. Three made a web; two makes a path, which is what a
+  // traveller needs and all the eye should have to untangle.
   nodes.forEach((node, index) => {
     const ranked = nodes
       .map((other, otherIndex) => ({
@@ -121,8 +144,19 @@ function buildLattice(columns: number, rows: number, seed: number): Node[] {
       }))
       .filter((entry) => entry.otherIndex !== index)
       .sort((a, b) => a.distance - b.distance)
-      .slice(0, 3)
+      .slice(0, 2)
     node.neighbours.push(...ranked.map((entry) => entry.otherIndex))
+  })
+
+  // A link is mutual: if A kept B, B can walk back to A, or a traveller can
+  // arrive somewhere with nowhere to go.
+  nodes.forEach((node, index) => {
+    for (const neighbour of node.neighbours) {
+      const other = nodes[neighbour]
+      if (other !== undefined && !other.neighbours.includes(index)) {
+        other.neighbours.push(index)
+      }
+    }
   })
 
   return nodes
@@ -130,8 +164,8 @@ function buildLattice(columns: number, rows: number, seed: number): Node[] {
 
 export function NeuralField({
   className,
-  columns = 7,
-  rows = 4,
+  columns = 6,
+  rows = 3,
   seed = 20_260_316,
   /** 0 is barely there, 1 is as loud as this is allowed to get. */
   intensity = 0.5,
@@ -154,9 +188,10 @@ export function NeuralField({
 
     const nodes = buildLattice(columns, rows, seed)
     const random = createRandom(seed ^ 0x9e37)
-    const styles = getComputedStyle(canvas)
-    const idle = resolve(styles.getPropertyValue('--primary').trim(), [108, 133, 255])
-    const hot = resolve(styles.getPropertyValue('--info').trim(), [122, 190, 255])
+    const mesh = resolve(
+      getComputedStyle(canvas).getPropertyValue('--primary').trim(),
+      [108, 133, 255],
+    )
 
     let width = 0
     let height = 0
@@ -187,20 +222,33 @@ export function NeuralField({
     window.addEventListener('pointermove', follow, { passive: true })
     window.addEventListener('pointerleave', forget)
 
-    const signals: Signal[] = []
-    const fire = (from: number): void => {
-      const node = nodes[from]
-      if (node === undefined || signals.length >= MAX_SIGNALS) return
-      // One or two ways onward: enough to fork, not enough to flood.
-      const forks = random() < 0.35 ? 2 : 1
-      for (let n = 0; n < forks; n += 1) {
-        const to = node.neighbours[Math.floor(random() * node.neighbours.length)]
-        if (to === undefined) continue
-        signals.push({ from, to, speed: 0.5 + random() * 0.9, progress: 0 })
-      }
+    const travellers: Traveller[] = []
+
+    const stepFrom = (node: Node, avoid: number): number | null => {
+      const options = node.neighbours.filter((candidate) => candidate !== avoid)
+      const pool = options.length > 0 ? options : node.neighbours
+      return pool[Math.floor(random() * pool.length)] ?? null
     }
-    // Start it mid-cascade, so the first frame is already alive.
-    for (let n = 0; n < 14; n += 1) fire(Math.floor(random() * nodes.length))
+
+    const release = (): void => {
+      if (travellers.length >= MOST_TRAVELLERS) return
+      const from = Math.floor(random() * nodes.length)
+      const node = nodes[from]
+      if (node === undefined) return
+      const to = stepFrom(node, -1)
+      if (to === null) return
+      travellers.push({
+        from,
+        to,
+        progress: 0,
+        waiting: random() * 2.2,
+        speed: SLOWEST + random() * (FASTEST - SLOWEST),
+        colour: NEON[Math.floor(random() * NEON.length)] ?? [88, 214, 255],
+        // Long enough to read as a route rather than a blink.
+        hops: 6 + Math.floor(random() * 10),
+      })
+    }
+    for (let n = 0; n < FEWEST_TRAVELLERS + 2; n += 1) release()
 
     const still = window.matchMedia('(prefers-reduced-motion: reduce)')
     let previous = 0
@@ -232,7 +280,8 @@ export function NeuralField({
         return { x, y, close }
       })
 
-      // The resting mesh, faint: it is the road, not the traffic.
+      // The resting mesh: the road, not the traffic. Barely there until the
+      // pointer is near it.
       context.lineWidth = 1
       for (const [index, node] of nodes.entries()) {
         const from = placed[index]
@@ -242,8 +291,7 @@ export function NeuralField({
           const to = placed[neighbour]
           if (to === undefined) continue
           const lit = Math.max(from.close, to.close)
-          context.globalAlpha = (0.26 + lit * 0.34) * power
-          context.strokeStyle = mix(idle, hot, 0)
+          context.strokeStyle = rgba(mesh, (0.06 + lit * 0.16) * power)
           context.beginPath()
           context.moveTo(from.x, from.y)
           context.lineTo(to.x, to.y)
@@ -251,51 +299,71 @@ export function NeuralField({
         }
       }
 
-      // The traffic: a streak with a bright head and a fading tail.
       context.lineCap = 'round'
-      for (let index = signals.length - 1; index >= 0; index -= 1) {
-        const signal = signals[index]
-        if (signal === undefined) continue
-        signal.progress += signal.speed * delta
+      for (let index = travellers.length - 1; index >= 0; index -= 1) {
+        const traveller = travellers[index]
+        if (traveller === undefined) continue
 
-        const from = placed[signal.from]
-        const to = placed[signal.to]
+        if (traveller.waiting > 0) {
+          traveller.waiting -= delta
+          continue
+        }
+
+        traveller.progress += traveller.speed * delta
+
+        const from = placed[traveller.from]
+        const to = placed[traveller.to]
         if (from === undefined || to === undefined) {
-          signals.splice(index, 1)
+          travellers.splice(index, 1)
           continue
         }
 
-        if (signal.progress >= 1) {
-          const arrived = nodes[signal.to]
-          if (arrived !== undefined) {
-            arrived.charge = 1
-            fire(signal.to)
+        if (traveller.progress >= 1) {
+          const arrived = nodes[traveller.to]
+          if (arrived === undefined) {
+            travellers.splice(index, 1)
+            continue
           }
-          signals.splice(index, 1)
+          arrived.charge = 1
+          arrived.colour = traveller.colour
+          traveller.hops -= 1
+          const next = traveller.hops <= 0 ? null : stepFrom(arrived, traveller.from)
+          if (next === null) {
+            travellers.splice(index, 1)
+            continue
+          }
+          traveller.from = traveller.to
+          traveller.to = next
+          traveller.progress = 0
+          traveller.waiting = 0.12 + random() * 0.9
           continue
         }
 
-        const head = signal.progress
+        const head = traveller.progress
         const tail = Math.max(0, head - TAIL)
-        const gradient = context.createLinearGradient(
-          from.x + (to.x - from.x) * tail,
-          from.y + (to.y - from.y) * tail,
-          from.x + (to.x - from.x) * head,
-          from.y + (to.y - from.y) * head,
-        )
-        gradient.addColorStop(0, mix(idle, hot, 0.2).replace('rgb(', 'rgba(').replace(')', ' / 0)'))
-        gradient.addColorStop(1, mix(idle, hot, 1))
-        context.globalAlpha = Math.min(1, 1.15 * power)
+        const hx = from.x + (to.x - from.x) * head
+        const hy = from.y + (to.y - from.y) * head
+        const tx = from.x + (to.x - from.x) * tail
+        const ty = from.y + (to.y - from.y) * tail
+
+        const gradient = context.createLinearGradient(tx, ty, hx, hy)
+        gradient.addColorStop(0, rgba(traveller.colour, 0))
+        gradient.addColorStop(1, rgba(traveller.colour, 0.6 * power))
         context.strokeStyle = gradient
-        context.lineWidth = 2.4
+        context.lineWidth = 1.7
         context.beginPath()
-        context.moveTo(from.x + (to.x - from.x) * tail, from.y + (to.y - from.y) * tail)
-        context.lineTo(from.x + (to.x - from.x) * head, from.y + (to.y - from.y) * head)
+        context.moveTo(tx, ty)
+        context.lineTo(hx, hy)
         context.stroke()
+
+        context.fillStyle = rgba(traveller.colour, 0.8 * power)
+        context.beginPath()
+        context.arc(hx, hy, 1.6, 0, Math.PI * 2)
+        context.fill()
       }
       context.lineWidth = 1
 
-      // The nodes, which carry whatever charge last reached them.
+      // The nodes, wearing whatever colour last reached them.
       for (const [index, point] of placed.entries()) {
         const node = nodes[index]
         if (node === undefined) continue
@@ -303,25 +371,23 @@ export function NeuralField({
         const heat = node.charge
 
         if (heat > 0.02) {
-          context.globalAlpha = heat * 0.4 * power
-          context.fillStyle = mix(idle, hot, heat)
+          context.fillStyle = rgba(node.colour, heat * 0.12 * power)
           context.beginPath()
-          context.arc(point.x, point.y, 6 + heat * 12, 0, Math.PI * 2)
+          context.arc(point.x, point.y, 4 + heat * 10, 0, Math.PI * 2)
           context.fill()
         }
 
-        context.globalAlpha = Math.min(1, (0.45 + heat * 0.55 + point.close * 0.5) * power)
-        context.fillStyle = mix(idle, hot, heat)
+        context.fillStyle = rgba(
+          heat > 0.05 ? node.colour : mesh,
+          (0.14 + heat * 0.5 + point.close * 0.25) * power,
+        )
         context.beginPath()
-        context.arc(point.x, point.y, 2 + heat * 2.4 + point.close * 2.6, 0, Math.PI * 2)
+        context.arc(point.x, point.y, 1.4 + heat * 1.8 + point.close * 1.6, 0, Math.PI * 2)
         context.fill()
       }
-      context.globalAlpha = 1
 
-      // Never let it go out: if the cascade dies, light it again elsewhere.
-      // Kept busy rather than merely alive: a field with three signals in it
-      // reads as broken, not as calm.
-      if (signals.length < 22) fire(Math.floor(random() * nodes.length))
+      // Keep a few routes in play, released at uneven moments.
+      if (travellers.length < FEWEST_TRAVELLERS && random() < 0.04) release()
     }
 
     let frame = 0

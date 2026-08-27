@@ -28,11 +28,13 @@ import { Card, CardBody, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/misc'
 import { formatCurrency, formatDate, formatDueness } from '@/lib/format'
 import { can, query, requireSession } from '@/server/context'
+import { currentTranslator } from '@/server/locale'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage(): Promise<React.JSX.Element> {
   const session = await requireSession()
+  const { t } = await currentTranslator()
 
   const data = await query(async (context: ExecutionContext) => {
     const currentContext = await USE_CASES.get_current_context.execute({}, context)
@@ -115,24 +117,25 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
        * it says is that the application is attached to something working, and
        * the link says where to go and watch that happen. */}
       <header className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8">
-        <NeuralField columns={10} rows={4} intensity={0.9} />
+        <NeuralField columns={8} rows={3} intensity={0.85} />
         <div className="relative flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-2xl space-y-3">
             <p className="text-[0.6875rem] font-medium tracking-[0.14em] text-muted-foreground uppercase">
               {data.businessDate === '' ? null : formatDate(data.businessDate)}
             </p>
             <h1 className="font-display text-2xl leading-tight font-semibold tracking-tight text-balance sm:text-3xl">
-              Good to see you, {session.name.split(' ')[0]}
+              {t('Good to see you')}, {session.name.split(' ')[0]}
             </h1>
             <p className="max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Here is what {session.tenantName} needs from you today. An agent can do part of it
-              too, under rules this system enforces rather than asks for.
+              {t(
+                'Here is what this company needs from you today. An agent can do part of it too, under rules this system enforces rather than asks for.',
+              ).replace('this company', session.tenantName)}
             </p>
             <Link
               href="/agent"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-primary transition hover:text-primary-hover"
             >
-              Watch the agent work
+              {t('Watch the agent work')}
               <ArrowUpRight className="size-4" />
             </Link>
           </div>
@@ -146,7 +149,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Revenue, last 30 days"
+          label={t('Revenue, last 30 days')}
           value={formatCurrency(data.revenue30)}
           hint="Invoiced sales only"
           icon={<ArrowUpRight className="size-4" />}
@@ -155,7 +158,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         />
         {canSeeFinance && data.overdue !== null ? (
           <StatCard
-            label="Overdue receivables"
+            label={t('Overdue receivables')}
             value={formatCurrency(data.overdue.total)}
             hint={`${String(data.overdue.count)} title(s) past due`}
             icon={<Receipt className="size-4" />}
@@ -165,7 +168,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         ) : null}
         {canSeeSales ? (
           <StatCard
-            label="Awaiting invoicing"
+            label={t('Awaiting invoicing')}
             value={String(data.pendingCount)}
             hint={`${formatCurrency(data.pendingValue)} confirmed, not yet invoiced`}
             icon={<ShoppingCart className="size-4" />}
@@ -175,7 +178,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         ) : null}
         {canSeeStock ? (
           <StatCard
-            label="Below minimum"
+            label={t('Below minimum')}
             value={String(data.alertCount)}
             hint="Products needing replenishment"
             icon={<PackageX className="size-4" />}
