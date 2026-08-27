@@ -30,11 +30,11 @@ export interface SeedUser {
 }
 
 export const SEED_USERS: readonly SeedUser[] = [
-  { email: 'admin@ledgerhand.dev', name: 'Ana Ribeiro', role: 'admin' },
-  { email: 'sales@ledgerhand.dev', name: 'Bruno Carvalho', role: 'sales' },
-  { email: 'finance@ledgerhand.dev', name: 'Carla Domingues', role: 'finance' },
-  { email: 'stock@ledgerhand.dev', name: 'Diego Estevam', role: 'stock' },
-  { email: 'readonly@ledgerhand.dev', name: 'Elena Fontes', role: 'readonly' },
+  { email: 'guest@ledgerhand.cloud', name: 'Guest', role: 'admin' },
+  { email: 'sales@ledgerhand.cloud', name: 'Bruno Carvalho', role: 'sales' },
+  { email: 'finance@ledgerhand.cloud', name: 'Carla Domingues', role: 'finance' },
+  { email: 'stock@ledgerhand.cloud', name: 'Diego Estevam', role: 'stock' },
+  { email: 'readonly@ledgerhand.cloud', name: 'Elena Fontes', role: 'readonly' },
 ]
 
 export const SEED_SUPPLIERS: readonly SeedParty[] = [

@@ -35,7 +35,7 @@ export async function createInProcessGateway(config: InProcessConfig): Promise<R
   const account = await accounts.findActiveByEmail(config.userEmail)
   if (account === null) {
     throw new Error(
-      `No active user with the email ${config.userEmail}. Set MCP_USER_EMAIL to a user that exists, for example admin@ledgerhand.dev after "pnpm db:seed".`,
+      `No active user with the email ${config.userEmail}. Set MCP_USER_EMAIL to a user that exists, for example guest@ledgerhand.cloud after "pnpm db:seed".`,
     )
   }
 

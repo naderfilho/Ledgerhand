@@ -139,7 +139,7 @@ async function main(): Promise<void> {
     cast.line(`  ${CYAN}${BOLD}${act.heading}${RESET}`, 0.5)
     cast.line(`  ${DIM}${act.point}${RESET}`, 0.8)
     cast.line()
-    cast.write(`  ${DIM}$${RESET} ledgerhand-agent --as ${act.role}@ledgerhand.dev`, 0.3)
+    cast.write(`  ${DIM}$${RESET} ledgerhand-agent --as ${act.role}@ledgerhand.cloud`, 0.3)
     cast.line('', 0.4)
     cast.write(`  ${DIM}>${RESET} `, 0.2)
     cast.type(`"${scenario.task}"`)

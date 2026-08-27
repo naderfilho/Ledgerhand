@@ -17,7 +17,7 @@ A working ERP for a small trading company, an MCP server that exposes its operat
 
 The thesis: an agent is only useful in production when it has **per-tool permissions**, **human confirmation for destructive actions**, a **complete audit trail** and a **measured success rate**. Everything here exists to make those four things verifiable rather than claimed.
 
-**Live at [ledgerhand.cloud](https://www.ledgerhand.cloud)** -- sign in as `admin@ledgerhand.dev` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application, the API and the agent's tool list change shape with the role.
+**Live at [ledgerhand.cloud](https://www.ledgerhand.cloud)** -- sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application, the API and the agent's tool list change shape with the role.
 
 Designed and built from scratch by **[Nader Filho](https://github.com/naderfilho)**.
 
@@ -137,7 +137,7 @@ To look at it, one command and nothing installed but Docker:
 docker compose -f docker/compose.yml --profile demo up
 ```
 
-That builds the application, migrates the schema, seeds ninety days of trading and serves it on <http://localhost:3000>. Sign in as `admin@ledgerhand.dev` with the password `ledgerhand`. There is one user per role (`admin`, `sales`, `finance`, `stock`, `readonly`) and the role decides what the screens, the API and the agent's tool list contain.
+That builds the application, migrates the schema, seeds ninety days of trading and serves it on <http://localhost:3000>. Sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`. There is one user per role (`admin`, `sales`, `finance`, `stock`, `readonly`) and the role decides what the screens, the API and the agent's tool list contain.
 
 To work on it:
 
@@ -226,19 +226,19 @@ Against the database directly, which is what a desktop MCP client launches:
       "args": ["packages/mcp-server/dist/bin/stdio.js"],
       "env": {
         "DATABASE_URL": "postgres://ledgerhand_app:ledgerhand_app@localhost:5432/ledgerhand",
-        "MCP_USER_EMAIL": "finance@ledgerhand.dev"
+        "MCP_USER_EMAIL": "finance@ledgerhand.cloud"
       }
     }
   }
 }
 ```
 
-`MCP_USER_EMAIL` names the user; the tenant and the role come from that user's row. Pointing it at `readonly@ledgerhand.dev` produces a server that genuinely cannot write.
+`MCP_USER_EMAIL` names the user; the tenant and the role come from that user's row. Pointing it at `readonly@ledgerhand.cloud` produces a server that genuinely cannot write.
 
 Or over HTTP, through the ERP's own API, which is the configuration where the MCP server holds no database credentials at all:
 
 ```bash
-ERP_API_TOKENS=demo-token:finance@ledgerhand.dev pnpm --filter @ledgerhand/web dev
+ERP_API_TOKENS=demo-token:finance@ledgerhand.cloud pnpm --filter @ledgerhand/web dev
 MCP_GATEWAY=http ERP_BASE_URL=http://localhost:3000 ERP_API_TOKEN=demo-token pnpm --filter @ledgerhand/mcp-server dev:http
 ```
 
@@ -250,7 +250,7 @@ The tokens live in the environment, which is honest for a demo and not what a de
 pnpm --filter @ledgerhand/agent dev "which products are below minimum, and what should we order?"
 ```
 
-The agent is an MCP client and nothing else: no database driver, no domain import, no permission list of its own. What it may do is whatever role the ERP resolves for the user the run acts for, so `MCP_USER_EMAIL=readonly@ledgerhand.dev` produces an agent that genuinely cannot write.
+The agent is an MCP client and nothing else: no database driver, no domain import, no permission list of its own. What it may do is whatever role the ERP resolves for the user the run acts for, so `MCP_USER_EMAIL=readonly@ledgerhand.cloud` produces an agent that genuinely cannot write.
 
 Five limits end a run, because an agent fails in five different ways: it loops, it reads too much, it writes too much, it costs too much, or it never finishes.
 

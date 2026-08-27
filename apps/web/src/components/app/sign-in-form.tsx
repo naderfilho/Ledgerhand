@@ -8,16 +8,16 @@ import { Field, Input } from '@/components/ui/field'
 import { signInAction, type SignInState } from '@/server/actions/session'
 
 const DEMO_ACCOUNTS = [
-  { role: 'admin', email: 'admin@ledgerhand.dev', note: 'everything' },
-  { role: 'sales', email: 'sales@ledgerhand.dev', note: 'orders, no money' },
-  { role: 'finance', email: 'finance@ledgerhand.dev', note: 'money, no warehouse' },
-  { role: 'stock', email: 'stock@ledgerhand.dev', note: 'warehouse and purchasing' },
-  { role: 'readonly', email: 'readonly@ledgerhand.dev', note: 'looks, touches nothing' },
+  { role: 'admin', email: 'guest@ledgerhand.cloud', note: 'everything' },
+  { role: 'sales', email: 'sales@ledgerhand.cloud', note: 'orders, no money' },
+  { role: 'finance', email: 'finance@ledgerhand.cloud', note: 'money, no warehouse' },
+  { role: 'stock', email: 'stock@ledgerhand.cloud', note: 'warehouse and purchasing' },
+  { role: 'readonly', email: 'readonly@ledgerhand.cloud', note: 'looks, touches nothing' },
 ] as const
 
 export function SignInForm(): React.JSX.Element {
   const [state, formAction, pending] = useActionState<SignInState, FormData>(signInAction, {})
-  const [email, setEmail] = React.useState('admin@ledgerhand.dev')
+  const [email, setEmail] = React.useState('guest@ledgerhand.cloud')
 
   return (
     <div className="space-y-6">

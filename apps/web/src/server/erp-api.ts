@@ -50,7 +50,7 @@ function matches(candidate: string, expected: string): boolean {
   return timingSafeEqual(digest(candidate), digest(expected))
 }
 
-/** `ERP_API_TOKENS=token-a:admin@ledgerhand.dev,token-b:finance@ledgerhand.dev` */
+/** `ERP_API_TOKENS=token-a:guest@ledgerhand.cloud,token-b:finance@ledgerhand.cloud` */
 function configuredTokens(): readonly { readonly token: string; readonly email: string }[] {
   const raw = process.env['ERP_API_TOKENS'] ?? ''
   return raw
