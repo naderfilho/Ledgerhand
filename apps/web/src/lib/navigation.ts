@@ -32,6 +32,13 @@ export const NAVIGATION: readonly NavGroup[] = [
         capability: 'reports:read',
         keywords: ['home', 'summary', 'today'],
       },
+      {
+        href: '/agent',
+        label: 'The agent',
+        icon: 'Bot',
+        capability: 'reports:read',
+        keywords: ['ai', 'mcp', 'guardrails', 'approval', 'replay'],
+      },
     ],
   },
   {

@@ -1,4 +1,5 @@
 import {
+  Bot,
   Boxes,
   ClipboardList,
   Coins,
@@ -21,6 +22,7 @@ import {
  */
 export const ICONS = {
   LayoutDashboard,
+  Bot,
   ShoppingCart,
   Users,
   ClipboardList,
