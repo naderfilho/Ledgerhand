@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { writeFileSync } from 'node:fs'
 import { consoleApprover, denyAll } from '../approvals.js'
+import { loadRepositoryEnvironment } from '../environment.js'
 import { runAgentTask } from '../run.js'
 import { summarise } from '../transcript.js'
 
@@ -41,6 +42,7 @@ function parse(argv: readonly string[]): Arguments {
 }
 
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const options = parse(process.argv.slice(2))
   if (options.task === '') {
     console.error(

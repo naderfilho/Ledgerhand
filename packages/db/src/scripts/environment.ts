@@ -19,6 +19,10 @@ import { fileURLToPath } from 'node:url'
  * seed the local database instead, which is the kind of surprise that ends
  * with the wrong tables emptied.
  *
+ * A second copy of this lives in `packages/agent/src/environment.ts`, because
+ * the agent may not depend on this package and the two composition roots are
+ * forbidden to share a module. See the note there.
+ *
  * The web application deliberately does not need this: every connection it
  * opens has a localhost default, so a fresh clone renders before anybody has
  * written a file. These scripts have no default on purpose -- the admin

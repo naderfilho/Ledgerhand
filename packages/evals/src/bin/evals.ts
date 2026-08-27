@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import Anthropic from '@anthropic-ai/sdk'
+import { loadRepositoryEnvironment } from '@ledgerhand/agent'
 import { writeFileSync } from 'node:fs'
 import { toMarkdown, toText } from '../report.js'
 import { runSuite } from '../runner.js'
@@ -61,6 +62,7 @@ function parse(argv: readonly string[]): Arguments {
 }
 
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const options = parse(process.argv.slice(2))
   const model = process.env['AGENT_MODEL'] ?? 'claude-sonnet-5'
 

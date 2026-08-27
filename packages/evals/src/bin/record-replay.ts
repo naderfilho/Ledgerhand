@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import Anthropic from '@anthropic-ai/sdk'
+import { loadRepositoryEnvironment } from '@ledgerhand/agent'
 import { writeFileSync } from 'node:fs'
 import { runScenario } from '../runner.js'
 import { scenarioNamed } from '../scenarios/index.js'
@@ -190,6 +191,7 @@ function asArguments(input: unknown): string {
 }
 
 async function main(): Promise<void> {
+  loadRepositoryEnvironment()
   const argv = process.argv.slice(2)
   const outIndex = argv.indexOf('--out')
   const out = outIndex >= 0 ? (argv[outIndex + 1] ?? 'replay.json') : 'replay.json'
