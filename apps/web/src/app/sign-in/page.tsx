@@ -191,14 +191,12 @@ export default async function SignInPage(): Promise<React.JSX.Element> {
             >
               Nader Filho
             </a>
-            <span> &amp; </span>
+            <span> · </span>
             <a
-              href="https://github.com/naderfilho"
-              target="_blank"
-              rel="noreferrer"
+              href="mailto:ndr.dev@outlook.com"
               className="text-foreground transition hover:text-primary"
             >
-              NDR Private Agency
+              ndr.dev@outlook.com
             </a>
           </p>
           <p className="flex items-center gap-4">

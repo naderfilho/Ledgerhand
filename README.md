@@ -19,7 +19,7 @@ The thesis: an agent is only useful in production when it has **per-tool permiss
 
 **Live at [ledgerhand.cloud](https://www.ledgerhand.cloud)** -- sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application, the API and the agent's tool list change shape with the role.
 
-Designed and built from scratch by **[Nader Filho](https://github.com/naderfilho)**.
+Designed and built by **[Nader Filho](https://github.com/naderfilho)** (<ndr.dev@outlook.com>).
 
 ---
 
@@ -31,12 +31,12 @@ Four of them, with the messages the running system actually produces.
 
 ### It is never shown what its role may not do
 
-The tool list is filtered by the role of the user the run acts for, so the model is not tempted by an operation it would be refused.
+The tool list is filtered by the role of the user the run acts for, so the model is not tempted by an operation it would be refused. Every role is also shown `preview_operation`, which runs nothing.
 
 ```
-admin      43 tools
-finance    28 tools
-readonly   21 tools
+admin      43 operations
+finance    27 operations
+readonly   20 operations
 ```
 
 A client that asks for a tool anyway, off-list, gets one message whether the tool is forbidden or imaginary, so it cannot map what it is not allowed to see:
@@ -94,21 +94,21 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 
 ## What works today
 
-| Area               | State                                                                   |
-| ------------------ | ----------------------------------------------------------------------- |
-| Domain model       | 43 use cases across catalogue, stock, sales, purchasing and finance     |
-| Business rules     | Enforced in the domain, not in the UI                                   |
-| Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                 |
-| Tenant isolation   | Row level security, attacked from five directions by tests              |
-| Demo data          | 90 days of reproducible trading, generated through the real use cases   |
-| Tests              | 317 passing, 96% line coverage on the domain, property-based            |
-| Authentication     | Auth.js v5, five roles, a Postgres role that can only read `users`      |
-| Web UI             | 19 routes, role-filtered, dark and light                                |
-| ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user      |
-| MCP server         | 43 tools, 7 resources, 2 templates, 4 prompts, stdio and HTTP           |
-| Guardrails         | Role-filtered tools, idempotent writes, human approval to destroy       |
-| Agent              | Claude over MCP, five budget limits, elicitation approvals, transcripts |
-| Eval suite         | 6 scenarios scored against the database: 3 guardrails, 3 capabilities   |
+| Area               | State                                                                    |
+| ------------------ | ------------------------------------------------------------------------ |
+| Domain model       | 43 use cases across catalogue, stock, sales, purchasing and finance      |
+| Business rules     | Enforced in the domain, not in the UI                                    |
+| Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
+| Tenant isolation   | Row level security, attacked from five directions by tests               |
+| Demo data          | 90 days of reproducible trading, generated through the real use cases    |
+| Tests              | 317 passing, 96% line coverage on the domain, property-based             |
+| Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
+| Web UI             | 19 routes, role-filtered, dark and light                                 |
+| ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
+| MCP server         | 43 tools, 7 resources, 2 templates, 4 prompts, stdio and HTTP            |
+| Guardrails         | Role-filtered tools, idempotent writes, human approval to destroy        |
+| Agent              | Claude over MCP, five budget limits, elicitation approvals, transcripts  |
+| Eval suite         | 6 scenarios scored against the database: 3 guardrails, 3 capabilities    |
 
 ### What deliberately does not exist
 
@@ -398,7 +398,9 @@ erDiagram
   PRODUCTS ||--o{ STOCK_MOVEMENTS : "records"
 ```
 
-Four tables do not appear above because they serve the machinery rather than the business:
+Four tables are worth a note of their own. The first three serve the machinery
+rather than the business and are left out of the diagram above; the fourth is in
+it, and is not quite what it looks like:
 
 | Table                 | Why it exists                                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
@@ -432,6 +434,8 @@ The deployment is what the schema was designed for rather than something it surv
 Row level security was verified against the hosted instance, not just the local one: sixteen checks covering an unscoped read, a read on a pooled connection that had been scoped before, each tenant against the other's rows, a cross-tenant insert refused with `42501`, and the sign-in role failing to read anything but `users` and `tenants`.
 
 `db:reset` drops and recreates the schema, which only works where the migration role owns it. On a managed instance the schema belongs to the platform, so `db:reseed` empties the tables with `TRUNCATE` instead: it removes demo data and never structure, which is what makes it safe to point at a deployment.
+
+It is pointed at one nightly. Anybody can sign in to the demo as an administrator, so the first visitor to cancel every order would otherwise leave a broken shop for the next one; [a scheduled workflow](.github/workflows/demo-reseed.yml) empties and seeds it again at 06:00 UTC. The seeded tenants and people have fixed identifiers rather than fresh ones, because a visitor signed in across a reseed carries their tenant id in a cookie the reseed cannot reach -- with new ids each night, that cookie would survive pointing at a tenant that no longer exists, and row level security would answer every query with an empty company.
 
 To look around inside it:
 
