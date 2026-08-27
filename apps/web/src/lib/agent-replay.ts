@@ -1,4 +1,6 @@
-import replay from '@/server/agent-replay.json'
+import type { Lang } from '@/lib/i18n'
+import english from '@/server/agent-replay.json'
+import portuguese from '@/server/agent-replay.pt.json'
 
 /**
  * ---------------------------------------------------------------------------
@@ -87,4 +89,21 @@ export interface Replay {
   readonly acts: readonly ReplayAct[]
 }
 
-export const REPLAY = replay as Replay
+/**
+ * Two recordings, not one recording translated. The agent answers in the
+ * language it is asked in, so the Portuguese screen plays a Portuguese run --
+ * rewriting what the model said in English would be putting words in its
+ * mouth, which is the one thing a repository about not overstating what you
+ * measured cannot do.
+ */
+const RECORDINGS: Readonly<Record<Lang, Replay>> = {
+  en: english as Replay,
+  pt: portuguese as Replay,
+}
+
+export function replayFor(lang: Lang): Replay {
+  return RECORDINGS[lang]
+}
+
+/** The English recording, for anything that renders before a language is known. */
+export const REPLAY = RECORDINGS.en

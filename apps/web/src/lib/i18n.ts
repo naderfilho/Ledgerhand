@@ -100,6 +100,15 @@ const PT: Readonly<Record<string, string>> = {
   'approval refused': 'aprovação recusada',
   'refused by the ERP': 'recusada pelo ERP',
   'Six recorded runs': 'Seis execuções gravadas',
+  'A recorded run': 'Uma execução gravada',
+  'Below are recorded runs, one for each kind of thing it can be asked: work that simply happens, work that stops for a person, and work it is never offered at all.':
+    'Abaixo estão execuções gravadas, uma para cada tipo de coisa que se pode pedir a ele: trabalho que simplesmente acontece, trabalho que para numa pessoa, e trabalho que nunca é oferecido.',
+  'recorded runs': 'execuções gravadas',
+  'of them guardrails': 'delas de proteção',
+  'Each act above was produced by running the real agent loop against a real MCP client and server and the real domain, and recording what happened. The tool calls are in the order they were made. The verdicts at the end of each act are the scenario’s own checks, which read the database after the run rather than reading the agent’s account of itself.':
+    'Cada ato acima foi produzido rodando o loop real do agente contra um cliente e um servidor MCP reais e o domínio real, e gravando o que aconteceu. As chamadas de ferramenta estão na ordem em que foram feitas. Os veredictos no fim de cada ato são os checks do próprio cenário, que leem o banco de dados depois da execução em vez de ler o relato que o agente faz de si mesmo.',
+  'Running it live on every visit would mean this public page spending on a paid API for anyone who opens it, so live execution is not exposed here. The recording is regenerated from the eval suite with one command, which means it cannot quietly drift away from what the agent actually does: if the behaviour changes, so does this screen.':
+    'Rodar ao vivo a cada visita significaria esta página pública gastando uma API paga por quem quer que a abra, então execução ao vivo não é exposta aqui. A gravação é regerada a partir da suíte de evals com um comando, o que significa que ela não consegue se afastar em silêncio do que o agente realmente faz: se o comportamento muda, esta tela muda junto.',
   Backstage: 'Bastidores',
   'What is happening': 'O que está acontecendo',
   'The ERP stopped and asked a person': 'O ERP parou e perguntou a uma pessoa',

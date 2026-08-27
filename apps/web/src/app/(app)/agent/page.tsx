@@ -2,13 +2,17 @@ import type { Metadata } from 'next'
 import type * as React from 'react'
 import { AgentReplay } from '@/components/app/agent-replay'
 import { Card, CardBody, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { REPLAY } from '@/lib/agent-replay'
+import { replayFor } from '@/lib/agent-replay'
 import { currentTranslator } from '@/server/locale'
 
 export const metadata: Metadata = { title: 'The agent' }
 
 export default async function AgentPage(): Promise<React.JSX.Element> {
-  const { t } = await currentTranslator()
+  const { t, lang } = await currentTranslator()
+  const replay = replayFor(lang)
+  // Counted, never typed: the paragraph said six while the screen showed
+  // fifteen, which is the drift this repository exists to argue against.
+  const guardrails = replay.acts.filter((entry) => entry.kind === 'guardrail').length
   const labels = {
     guardrail: t('Guardrail'),
     capability: t('Capability'),
@@ -35,14 +39,20 @@ export default async function AgentPage(): Promise<React.JSX.Element> {
       <header className="space-y-2">
         <h1 className="text-xl font-semibold tracking-tight">{t('The agent')}</h1>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-          An agent is only useful in production when the system, not the prompt, decides what it may
-          do. Six recorded runs, below: the tool that is never offered, a person who approves, a
-          person who refuses, nobody available to answer at all, and two where the work is
-          reversible so nobody is interrupted.
+          {t(
+            'An agent is only useful in production when the system, not the prompt, decides what it may do.',
+          )}{' '}
+          {t(
+            'Below are recorded runs, one for each kind of thing it can be asked: work that simply happens, work that stops for a person, and work it is never offered at all.',
+          )}{' '}
+          <span className="text-foreground">
+            {String(replay.acts.length)} {t('recorded runs')}, {String(guardrails)}{' '}
+            {t('of them guardrails')}.
+          </span>
         </p>
       </header>
 
-      <AgentReplay acts={REPLAY.acts} labels={labels} />
+      <AgentReplay acts={replay.acts} labels={labels} />
 
       <Card>
         <CardHeader>
@@ -51,18 +61,16 @@ export default async function AgentPage(): Promise<React.JSX.Element> {
         </CardHeader>
         <CardBody className="space-y-3 text-sm leading-relaxed text-muted-foreground">
           <p>
-            Each act above was produced by running the real agent loop against a real MCP client and
-            server and the real domain, on {REPLAY.model}, and recording what happened. The tool
-            calls are in the order they were made. The verdicts at the end of each act are the
-            scenario&rsquo;s own checks, which read the database after the run rather than reading
-            the agent&rsquo;s account of itself.
+            {t(
+              'Each act above was produced by running the real agent loop against a real MCP client and server and the real domain, and recording what happened. The tool calls are in the order they were made. The verdicts at the end of each act are the scenario’s own checks, which read the database after the run rather than reading the agent’s account of itself.',
+            )}
           </p>
           <p>
-            Running it live on every visit would mean this public page spending on a paid API for
-            anyone who opens it, so live execution is not exposed here. The recording is regenerated
-            from the eval suite with one command, which means it cannot quietly drift away from what
-            the agent actually does: if the behaviour changes, so does this screen.
+            {t(
+              'Running it live on every visit would mean this public page spending on a paid API for anyone who opens it, so live execution is not exposed here. The recording is regenerated from the eval suite with one command, which means it cannot quietly drift away from what the agent actually does: if the behaviour changes, so does this screen.',
+            )}
           </p>
+          <p className="font-mono text-xs">{replay.model}</p>
         </CardBody>
       </Card>
     </div>
