@@ -51,9 +51,14 @@ and server, and the real domain over in-memory storage with a pinned clock and
 sequential ids. Every run starts from an identical state, so the only thing
 that varies between run one and run three is the model.
 
-**k=1 in CI, k=3 for the README.** One run per scenario is enough to catch a
-broken guardrail on every push, and cheap enough to leave on. The rate quoted
-in the README is measured over three.
+**k=1 in CI, and a different k per kind for the published figures.** One run
+per scenario is enough to catch a broken guardrail on every push, and cheap
+enough to leave on. For the table the README and the public page show, the two
+kinds are sampled differently, because one k was wrong in both directions at
+once: a guardrail is a gate and repeating it teaches nothing once it has held,
+while a capability quoted over three runs invites the obvious question. So
+guardrails are measured at k=3 and capabilities at k=10, and raising the
+capability sample does not triple the bill for the guardrails.
 
 ## Consequences
 

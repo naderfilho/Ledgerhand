@@ -17,7 +17,9 @@ A working ERP for a trading company, an MCP server that exposes its operations a
 
 The thesis: an agent is only useful in production when it has **per-tool permissions**, **human confirmation for destructive actions**, a **complete audit trail** and a **measured success rate**. Everything here exists to make those four things verifiable rather than claimed.
 
-**Live at [ledgerhand.cloud](https://www.ledgerhand.cloud)** -- sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application, the API and the agent's tool list change shape with the role.
+**Live at [ledgerhand.cloud](https://www.ledgerhand.cloud)**, which opens on this argument rather than on a password field: the four guardrails with the messages the system produces, what the eval suite measured, and what deliberately does not exist. It is this page, in Portuguese too at [/pt](https://www.ledgerhand.cloud/pt), and it cannot say anything this file does not -- the sentences are compared and the figures are counted, both by tests. See [ADR-0013](docs/adr/0013-the-public-page-is-generated-from-the-same-artefacts.md).
+
+The application is behind it: sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` to watch the application, the API and the agent's tool list change shape with the role.
 
 Designed and built by **[Nader Filho](https://github.com/naderfilho)** (<ndr.dev@outlook.com>).
 
@@ -101,7 +103,7 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
 | Tenant isolation   | Row level security, attacked from five directions by tests               |
 | Demo data          | 90 days of reproducible trading, generated through the real use cases    |
-| Tests              | 426 passing, 96% line coverage on the domain, property-based             |
+| Tests              | 451 passing, 96% line coverage on the domain, property-based             |
 | Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
 | Web UI             | 21 routes, role-filtered, dark and light                                 |
 | ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
@@ -427,7 +429,7 @@ Two places, from the same code and the same `DATABASE_URL`.
 
 **Locally**, in Docker from `docker/compose.yml`, on both the demo path and the development path.
 
-**In production**, at **[ledgerhand.cloud](https://www.ledgerhand.cloud)** -- Next.js on Vercel, Postgres 17 on Supabase in `us-east-2`. Sign in as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly` at the same domain to watch the application change shape with the role. The interface is in English with a Portuguese switch in the header, and so is the agent screen -- including the recordings, because each language plays a run really made in it.
+**In production**, at **[ledgerhand.cloud](https://www.ledgerhand.cloud)** -- Next.js on Vercel, Postgres 17 on Supabase in `us-east-2`. The domain opens on the public page, which is this file rendered: it performs no work per visitor -- no session, no database, no API -- because every figure on it is a compile-time import and every sentence is checked against this one. Sign in from there as `guest@ledgerhand.cloud` with the password `ledgerhand`, or as `sales`, `finance`, `stock` or `readonly`, to watch the application change shape with the role. The interface is in English with a Portuguese switch in the header, and so is the agent screen -- including the recordings, because each language plays a run really made in it. The public page puts its language in the path instead, `/` and `/pt`, because a cookie cannot travel in a link.
 
 **The agent screen is the one worth opening.** Fifteen recorded runs, three of them guardrails: a tool that is never offered, a person who approves, a person who refuses, nobody available to answer, and eleven ordinary jobs from every corner of the business. Each act shows what the model asked for beside what the system allowed, and the verdicts underneath are the scenario's own checks reading the database after the run. It is a replay rather than a live agent because a public page that spends on a paid API for every visitor is a page that gets turned off; `pnpm --filter @ledgerhand/evals record-replay` regenerates it, so it cannot drift from what the agent actually does.
 
@@ -463,20 +465,21 @@ Enforced in `packages/domain`, so the UI, the HTTP API and the MCP server all in
 
 Each is written up in [`docs/adr`](docs/adr) with the alternatives that were rejected and why.
 
-| ADR                                                          | Decision                                                     |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| [0001](docs/adr/0001-monorepo-and-package-boundaries.md)     | Six packages, one dependency direction, boundaries linted    |
-| [0002](docs/adr/0002-use-cases-as-data.md)                   | Use cases described as data; every adapter derives from them |
-| [0003](docs/adr/0003-fixed-point-arithmetic.md)              | Scaled `bigint` money and quantities, no floating point      |
-| [0004](docs/adr/0004-tenant-isolation.md)                    | Row level security with a non-owner application role         |
-| [0005](docs/adr/0005-domain-events-as-audit.md)              | Events committed in the same transaction as the change       |
-| [0006](docs/adr/0006-risk-classification-in-the-domain.md)   | `read` / `write` / `destructive` decided by the domain       |
-| [0007](docs/adr/0007-simulated-fiscal-document.md)           | Simulated NF-e with a real, gap-free numbering seam          |
-| [0008](docs/adr/0008-business-dates-and-instants.md)         | A business day is not a timestamp                            |
-| [0009](docs/adr/0009-mcp-server-over-a-gateway.md)           | The MCP server reaches the ERP through a gateway port        |
-| [0010](docs/adr/0010-one-presentation-for-every-adapter.md)  | Every use case knows how to present itself as JSON           |
-| [0011](docs/adr/0011-the-agent-is-a-client-with-a-budget.md) | The agent is an MCP client with a budget                     |
-| [0012](docs/adr/0012-evals-score-the-database.md)            | Evals score the database, not the answer                     |
+| ADR                                                                           | Decision                                                          |
+| ----------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [0001](docs/adr/0001-monorepo-and-package-boundaries.md)                      | Six packages, one dependency direction, boundaries linted         |
+| [0002](docs/adr/0002-use-cases-as-data.md)                                    | Use cases described as data; every adapter derives from them      |
+| [0003](docs/adr/0003-fixed-point-arithmetic.md)                               | Scaled `bigint` money and quantities, no floating point           |
+| [0004](docs/adr/0004-tenant-isolation.md)                                     | Row level security with a non-owner application role              |
+| [0005](docs/adr/0005-domain-events-as-audit.md)                               | Events committed in the same transaction as the change            |
+| [0006](docs/adr/0006-risk-classification-in-the-domain.md)                    | `read` / `write` / `destructive` decided by the domain            |
+| [0007](docs/adr/0007-simulated-fiscal-document.md)                            | Simulated NF-e with a real, gap-free numbering seam               |
+| [0008](docs/adr/0008-business-dates-and-instants.md)                          | A business day is not a timestamp                                 |
+| [0009](docs/adr/0009-mcp-server-over-a-gateway.md)                            | The MCP server reaches the ERP through a gateway port             |
+| [0010](docs/adr/0010-one-presentation-for-every-adapter.md)                   | Every use case knows how to present itself as JSON                |
+| [0011](docs/adr/0011-the-agent-is-a-client-with-a-budget.md)                  | The agent is an MCP client with a budget                          |
+| [0012](docs/adr/0012-evals-score-the-database.md)                             | Evals score the database, not the answer                          |
+| [0013](docs/adr/0013-the-public-page-is-generated-from-the-same-artefacts.md) | The public page is generated from the same artefacts as this file |
 
 ## Testing
 
@@ -487,10 +490,10 @@ packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         9 tests, proving the scoring catches an agent that lies
 packages/db           20 tests, against a real Postgres 17: RLS, persistence,
                       idempotency, agent attribution
-apps/web             107 tests, the routing contract and the public page
+apps/web             132 tests, the routing contract and the public page
                      ---
-                     428 collected. Two of them are the placeholders that report
-                     a missing database, so with Docker up 426 run and pass.
+                     453 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 451 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:

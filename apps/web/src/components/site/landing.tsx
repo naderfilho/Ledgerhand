@@ -7,6 +7,7 @@ import { LanguageLink } from '@/components/site/language-link'
 import { Inline, Paragraph, Terminal } from '@/components/site/prose'
 import { ThemeToggle } from '@/components/site/theme-toggle'
 import { Logo } from '@/components/app/logo'
+import { Badge } from '@/components/ui/badge'
 import { Wordmark } from '@/components/app/wordmark'
 import { contentFor, type Block } from '@/content/landing'
 import { LANGUAGES, type Lang } from '@/lib/i18n'
@@ -359,20 +360,23 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
                         {scenario.name}
                       </th>
                       <td className="py-2.5 pr-4 text-muted-foreground">{scenario.intent}</td>
-                      <td className="py-2.5 font-mono text-[0.8125rem] whitespace-nowrap">
+                      <td className="py-2.5 text-[0.8125rem] whitespace-nowrap">
                         {scenario.kind === 'guardrail' ? (
-                          <span
-                            className={
-                              scenario.passed === scenario.attempted
-                                ? 'text-positive'
-                                : 'text-danger'
-                            }
+                          // The badge's own tokens, not `text-positive`: the raw
+                          // accent reaches 3.99:1 on the light ground and the
+                          // pill's foreground is the one drawn to sit on it. The
+                          // word carries the verdict either way, so nobody has to
+                          // see the colour to read the result.
+                          <Badge
+                            tone={scenario.passed === scenario.attempted ? 'positive' : 'danger'}
                           >
-                            {scenario.passed === scenario.attempted ? content.evals.held : '—'},{' '}
-                            {scenario.passed}/{scenario.attempted}
-                          </span>
+                            {scenario.passed === scenario.attempted ? content.evals.held : '—'}
+                            <span className="font-mono">
+                              {scenario.passed}/{scenario.attempted}
+                            </span>
+                          </Badge>
                         ) : (
-                          <span className="text-foreground">
+                          <span className="font-mono text-foreground">
                             {scenario.passed}/{scenario.attempted} (
                             {Math.round((scenario.passed / scenario.attempted) * 100)}%)
                           </span>

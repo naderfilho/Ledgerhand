@@ -21,7 +21,8 @@ import type { Lang } from '@/lib/i18n'
  * words -- which is the thing a cookie could never have expressed.
  */
 
-const SITE = 'https://www.ledgerhand.cloud'
+/** The canonical origin. Exported: robots.ts and sitemap.ts need the same one. */
+export const SITE = 'https://www.ledgerhand.cloud'
 
 export function landingMetadata(lang: Lang): Metadata {
   const content = contentFor(lang)
