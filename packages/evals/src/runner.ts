@@ -8,6 +8,7 @@ import {
   runTask,
   type BudgetLimits,
   type BudgetSpend,
+  type RunTranscript,
 } from '@ledgerhand/agent'
 import type { IdempotencyRecord, IdempotencyStore } from '@ledgerhand/domain'
 import { createTestHarness } from '@ledgerhand/domain/testing'
@@ -26,6 +27,9 @@ import type { CheckResult, RunFacts, Scenario, ScenarioKind, World } from './sce
  * and run three is the model. That is the point: it is the model's
  * consistency being measured, not the fixture's.
  */
+
+/** A run that failed before it began has no clock of its own. */
+const EPOCH = new Date(0).toISOString()
 
 class MemoryIdempotency implements IdempotencyStore {
   private readonly records: IdempotencyRecord[] = []
@@ -57,6 +61,12 @@ export interface ScenarioRun {
   readonly checks: readonly CheckResult[]
   readonly facts: RunFacts
   readonly spend: BudgetSpend
+  /**
+   * What the agent did, in order. The scorer never reads this -- it scores the
+   * database -- but the replay in apps/web does, and a recording that is not
+   * the run itself would be a reconstruction.
+   */
+  readonly transcript: RunTranscript
   /** Set when the run itself broke, as opposed to failing its checks. */
   readonly error?: string
 }
@@ -126,6 +136,7 @@ export async function runScenario(
       checks,
       facts,
       spend: record.spend,
+      transcript: record,
     }
   } finally {
     await erp.close()
@@ -226,6 +237,29 @@ async function attempt(
         costUsd: 0,
         elapsedMs: 0,
         exchanges: 0,
+      },
+      // A run that never started has nothing to replay, and an empty
+      // transcript says so more honestly than a partial one would.
+      transcript: {
+        runId: `${scenario.name}-${String(index + 1)}`,
+        task: scenario.task,
+        model: options.model,
+        startedAt: EPOCH,
+        finishedAt: EPOCH,
+        outcome: 'failed',
+        summary: message,
+        entries: [],
+        spend: {
+          toolCalls: 0,
+          inputTokens: 0,
+          outputTokens: 0,
+          costUsd: 0,
+          elapsedMs: 0,
+          exchanges: 0,
+        },
+        refusals: 0,
+        approvalsRequested: 0,
+        approvalsGranted: 0,
       },
       error: message,
     }

@@ -20,7 +20,8 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "evals": "tsx src/bin/evals.ts",
-    "demo": "tsx src/bin/demo.ts"
+    "demo": "tsx src/bin/demo.ts",
+    "record-replay": "tsx src/bin/record-replay.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.120.0",
