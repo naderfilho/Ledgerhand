@@ -18,16 +18,34 @@ function staticImages(): Plugin {
     enforce: 'pre',
     load(id: string) {
       const path = id.split('?')[0] ?? id
-      if (!path.endsWith('.svg')) return null
-      const svg = readFileSync(path, 'utf8')
-      const number = (attribute: string): number =>
-        Number(new RegExp(`${attribute}="([\\d.]+)"`).exec(svg)?.[1] ?? 0)
-      const image = {
-        src: `/_next/static/media/${path.split(/[\\/]/).at(-1) ?? 'image.svg'}`,
-        width: Math.round(number('width')),
-        height: Math.round(number('height')),
+      const name = path.split(/[\\/]/).at(-1) ?? 'image'
+      const src = `/_next/static/media/${name}`
+
+      if (path.endsWith('.svg')) {
+        const svg = readFileSync(path, 'utf8')
+        const number = (attribute: string): number =>
+          Number(new RegExp(`${attribute}="([\\d.]+)"`).exec(svg)?.[1] ?? 0)
+        return `export default ${JSON.stringify({
+          src,
+          width: Math.round(number('width')),
+          height: Math.round(number('height')),
+        })}`
       }
-      return `export default ${JSON.stringify(image)}`
+
+      if (path.endsWith('.png')) {
+        // The IHDR chunk starts at byte 8; width and height are the two 32-bit
+        // integers that open it. Read rather than assumed, for the same reason
+        // the SVG's are: an image whose dimensions a test invented is an image
+        // whose missing dimensions a test cannot catch.
+        const png = readFileSync(path)
+        return `export default ${JSON.stringify({
+          src,
+          width: png.readUInt32BE(16),
+          height: png.readUInt32BE(20),
+        })}`
+      }
+
+      return null
     },
   }
 }

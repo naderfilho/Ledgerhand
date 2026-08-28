@@ -164,6 +164,69 @@ Nothing was done a second time.)`,
     outro: `Nenhuma das quatro vive num prompt. Elas vivem em [\`packages/domain\`](${REPOSITORY}/blob/main/packages/domain/src/use-cases/definition.ts) (qual operação é destrutiva), [\`packages/mcp-server\`](${REPOSITORY}/blob/main/packages/mcp-server/src/server/build.ts) (o que é anunciado e o que é recusado), [\`packages/db\`](${REPOSITORY}/blob/main/packages/db/src/unit-of-work.ts) (uma transação para o efeito, o evento e o registro de idempotência) e [\`packages/agent\`](${REPOSITORY}/blob/main/packages/agent/src/budget.ts) (os cinco limites que encerram uma execução). Um modelo de linguagem não consegue conversar para passar por nenhuma delas, e um bug no agente também não.`,
   },
 
+  mcp: {
+    heading: 'O servidor MCP',
+    blocks: [
+      {
+        kind: 'text',
+        text: 'Todo caso de uso é uma ferramenta, derivada do seu descritor em vez de escrita de novo. O schema anunciado ao modelo é o schema que o rejeita, e o risco nas anotações da ferramenta é o que o domínio decidiu.',
+      },
+      { kind: 'mcp-surface' },
+      {
+        kind: 'text',
+        text: 'O servidor é montado sobre o `Server` de baixo nível do SDK, e não sobre o `McpServer`, porque a API de alto nível converte o schema zod por conta própria e essa conversão não consegue expressar as regras entre campos que vários destes inputs carregam -- e publicar um schema que não é o que faz a rejeição é exatamente a divergência a evitar.',
+      },
+      {
+        kind: 'text',
+        text: 'E `tools/call` reconfere se o nome pedido está na lista que publicou, porque um cliente é livre para pedir um nome que nunca lhe foi oferecido.',
+      },
+    ],
+    surfaceLabel: 'O que o servidor anuncia',
+    toolsSuffix: 'filtradas pelo papel de quem chama',
+    resources: [
+      'erp://catalog/products',
+      'erp://stock/position',
+      'erp://stock/below-minimum',
+      'erp://sales/orders/pending',
+      'erp://finance/receivables/overdue',
+      'erp://finance/payables/due-today',
+      'erp://cash/today',
+    ],
+    templates: ['erp://reports/sales/{from}/{to}', 'erp://fiscal/documents/{series}/{number}'],
+    prompts: [
+      'daily_cash_closing',
+      'minimum_stock_replenishment',
+      'overdue_receivables_review',
+      'month_end_review',
+    ],
+  },
+
+  agent: {
+    heading: 'O agente',
+    blocks: [
+      {
+        kind: 'text',
+        text: 'O agente é um cliente MCP e nada mais: sem driver de banco, sem import do domínio, sem lista de permissões própria.',
+      },
+      {
+        kind: 'text',
+        text: 'Cinco limites encerram uma execução, porque um agente falha de cinco maneiras diferentes: ele entra em laço, lê demais, escreve demais, custa demais, ou nunca termina.',
+      },
+      {
+        kind: 'text',
+        text: 'Eles são conferidos entre passos em vez de previstos antes deles, então uma execução ultrapassa no máximo pelo passo que rompeu o limite. Prever o custo de um passo significaria adivinhar o tamanho de um resultado de ferramenta que ainda não aconteceu, e um palpite dentro de um mecanismo de segurança é pior que um excesso limitado.',
+      },
+    ],
+    limitsLabel: 'O que encerra uma execução',
+    limits: [
+      { name: 'Chamadas de ferramenta', variable: 'AGENT_MAX_TOOL_CALLS' },
+      { name: 'Tokens de entrada', variable: 'AGENT_MAX_INPUT_TOKENS' },
+      { name: 'Tokens de saída', variable: 'AGENT_MAX_OUTPUT_TOKENS' },
+      { name: 'Custo', variable: 'AGENT_MAX_COST_USD' },
+      { name: 'Relógio de parede', variable: 'AGENT_MAX_WALL_CLOCK_MS' },
+    ],
+  },
+
   evals: {
     heading: 'Isso funciona mesmo?',
     lead: 'É o que `packages/evals` responde, e responde lendo o banco em vez do resumo do agente. Um agente que diz "fechei o caixa" e não fechou tira zero, e há um teste provando que a suíte não se deixa enganar exatamente por isso.',

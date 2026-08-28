@@ -3,13 +3,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import type * as React from 'react'
-import { AgentGlimpse } from '@/components/app/agent-glimpse'
 import { LanguageToggle } from '@/components/app/language-toggle'
-import { Logo } from '@/components/app/logo'
+import { Brandmark } from '@/components/app/brandmark'
 import { SignInForm } from '@/components/app/sign-in-form'
 import { Wordmark } from '@/components/app/wordmark'
-import { replayFor } from '@/lib/agent-replay'
-import { DESTRUCTIVE_COUNT, OPERATION_COUNT } from '@/lib/operations'
 import { CALLBACK_PARAM, LANDING_PATHS, safeCallbackUrl } from '@/lib/routes'
 import { currentSession } from '@/server/context'
 import { currentTranslator } from '@/server/locale'
@@ -17,21 +14,6 @@ import { currentTranslator } from '@/server/locale'
 export const metadata: Metadata = { title: 'Sign in' }
 
 const REPOSITORY = 'https://github.com/naderfilho/Ledgerhand'
-
-const PILLARS = [
-  {
-    title: 'Permissions per tool',
-    body: 'A role that cannot settle a receivable is never shown the tool, in the UI or over MCP.',
-  },
-  {
-    title: 'A human approves what cannot be undone',
-    body: `${String(DESTRUCTIVE_COUNT)} of the ${String(OPERATION_COUNT)} operations are irreversible. Each one pauses for a person and shows exactly what it would do.`,
-  },
-  {
-    title: 'Everything is on the record',
-    body: 'Every change writes a domain event in the same transaction, naming the user or the agent run behind it.',
-  },
-] as const
 
 export default async function SignInPage({
   searchParams,
@@ -47,31 +29,11 @@ export default async function SignInPage({
 
   const { t, lang } = await currentTranslator()
 
-  // The one act worth showing before anybody has signed in: an agent that
-  // reached for something irreversible, stopped, and was allowed. Taken from
-  // the recording, so the page cannot promise behaviour the agent lacks.
-  const act = replayFor(lang).acts.find((entry) => entry.name === 'daily-closing')
-  const approval = act?.beats.find((beat) => beat.kind === 'approval')
-  const glimpse =
-    act === undefined || approval?.kind !== 'approval'
-      ? null
-      : {
-          question: act.task,
-          // The first sentence of what the ERP asked. The whole message is a
-          // paragraph, and this card is a few lines tall.
-          decision: `${approval.message.split('.')[0] ?? approval.message}?`,
-          approved: approval.approved,
-          steps: act.beats
-            .filter((beat) => beat.kind === 'call')
-            .slice(0, 3)
-            .map((beat) => ({ tool: beat.tool, plain: beat.plain })),
-        }
-
   return (
-    // One atmosphere rather than two screens: the glows belong to the page, so
-    // the light crosses the middle instead of stopping at the column boundary.
-    // A header and a footer hold the two halves together -- without them the
-    // page was two blocks floating in the dark, and the brand was a footnote.
+    // The header and footer stay: a form floating alone on a dark ground has
+    // no brand on it and nowhere to go back to. The glows stay for the same
+    // reason they are on the landing page -- this is the same site, and a door
+    // that looks like a different building is a door people do not walk through.
     <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-background">
       {/* The glows live in their own clipped box. Loose in the root they
        * reached past the footer and added two hundred pixels of scrollable
@@ -94,7 +56,7 @@ export default async function SignInPage({
 
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-20 w-full max-w-[92rem] items-center gap-4 px-6 lg:px-10">
-          <Logo className="size-11 shrink-0" title="LedgerHand" />
+          <Brandmark className="size-11" />
           <div className="min-w-0">
             <Wordmark size="lg" className="block" />
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -129,52 +91,16 @@ export default async function SignInPage({
         </div>
       </header>
 
-      <main className="relative z-10 mx-auto grid w-full max-w-[92rem] flex-1 items-center gap-12 px-6 py-12 lg:grid-cols-[1.05fr_minmax(0,26rem)] lg:gap-16 lg:px-10">
-        <section className="hidden max-w-2xl space-y-7 lg:block">
-          <div className="space-y-4">
-            <h1 className="font-display text-[2.6rem] leading-[1.1] font-semibold tracking-tight text-balance">
-              {t(
-                'An ERP is the hard part. Letting an AI agent run it safely is the interesting part.',
-              )}
-            </h1>
-            <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-              {t(
-                'A working system for a trading company, built so that an agent can operate it without anybody having to trust the agent.',
-              )}
-            </p>
-          </div>
-
-          <ul className="space-y-4">
-            {PILLARS.map((pillar, index) => (
-              <li key={pillar.title} className="flex gap-3.5">
-                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-[0.6875rem] font-semibold text-muted-foreground">
-                  {index + 1}
-                </span>
-                <div className="space-y-1">
-                  <p className="text-[0.9375rem] font-medium">{t(pillar.title)}</p>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{t(pillar.body)}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-
-          {glimpse === null ? null : (
-            <AgentGlimpse
-              label={t('A recorded run')}
-              steps={glimpse.steps}
-              question={glimpse.question}
-              backstageLabel={t('Backstage')}
-              meaningLabel={t('What is happening')}
-              decision={glimpse.decision}
-              approved={glimpse.approved}
-              answerLabel={glimpse.approved ? t('Approved') : t('Refused')}
-            />
-          )}
-        </section>
-
-        <section className="mx-auto w-full max-w-md rounded-2xl border border-border bg-surface/70 p-7 shadow-[var(--shadow-raised)] backdrop-blur-sm lg:p-8">
+      {/* One column, and the form is the only thing in it.
+       * It carried the thesis, three pillars and a recorded run for as long as
+       * it was the only public page. It is not any more: everything that was
+       * here is on the landing page, in more room and in two languages, and a
+       * second copy of an argument is the drift this repository argues against.
+       * What is left is the thing somebody came here to do. */}
+      <main className="relative z-10 mx-auto flex w-full max-w-md flex-1 items-center px-6 py-12">
+        <section className="w-full rounded-2xl border border-border bg-surface/70 p-7 shadow-[var(--shadow-raised)] backdrop-blur-sm">
           <div className="mb-6 space-y-1.5">
-            <h2 className="font-display text-2xl font-semibold tracking-tight">{t('Sign in')}</h2>
+            <h1 className="font-display text-2xl font-semibold tracking-tight">{t('Sign in')}</h1>
             <p className="text-sm text-muted-foreground">
               {t('Use one of the demo accounts below to see how the role changes the application.')}
             </p>

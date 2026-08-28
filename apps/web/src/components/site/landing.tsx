@@ -6,10 +6,10 @@ import { Copyable } from '@/components/site/copyable'
 import { LanguageLink } from '@/components/site/language-link'
 import { Inline, Paragraph, Terminal } from '@/components/site/prose'
 import { ThemeToggle } from '@/components/site/theme-toggle'
-import { Logo } from '@/components/app/logo'
+import { Brandmark } from '@/components/app/brandmark'
 import { Badge } from '@/components/ui/badge'
 import { Wordmark } from '@/components/app/wordmark'
-import { contentFor, type Block } from '@/content/landing'
+import { contentFor, type Block, type LandingContent } from '@/content/landing'
 import { LANGUAGES, type Lang } from '@/lib/i18n'
 import { DESTRUCTIVE_COUNT, OPERATION_COUNT, roleOperationsListing } from '@/lib/operations'
 import { HOME_PATH, LANDING_PATHS, SIGN_IN_PATH } from '@/lib/routes'
@@ -85,8 +85,15 @@ function Section({
   )
 }
 
-/** One guardrail's blocks, including the two that are counted rather than written. */
-function Blocks({ blocks }: { readonly blocks: readonly Block[] }): React.JSX.Element {
+/** One section's blocks, including the ones that are counted rather than written. */
+function Blocks({
+  blocks,
+  surface,
+}: {
+  readonly blocks: readonly Block[]
+  /** Only the MCP section has one; the listing it renders is counted, not typed. */
+  readonly surface?: LandingContent['mcp']
+}): React.JSX.Element {
   return (
     <>
       {blocks.map((block, index) => {
@@ -94,6 +101,28 @@ function Blocks({ blocks }: { readonly blocks: readonly Block[] }): React.JSX.El
 
         if (block.kind === 'role-counts') {
           return <Terminal key={key} label="tools/list" text={roleOperationsListing()} />
+        }
+
+        if (block.kind === 'mcp-surface') {
+          if (surface === undefined) return null
+          const rows: readonly (readonly [string, string])[] = [
+            ['tools', `${String(OPERATION_COUNT)}, ${surface.toolsSuffix}`],
+            ['resources', surface.resources.join('\n')],
+            ['templates', surface.templates.join('\n')],
+            ['prompts', surface.prompts.join('\n')],
+          ]
+          const width = Math.max(...rows.map(([label]) => label.length)) + 3
+          const text = rows
+            .map(([label, value]) =>
+              value
+                .split('\n')
+                .map((line, line_) =>
+                  line_ === 0 ? label.padEnd(width) + line : ' '.repeat(width) + line,
+                )
+                .join('\n'),
+            )
+            .join('\n')
+          return <Terminal key={key} label={surface.surfaceLabel} text={text} />
         }
 
         if (block.kind === 'terminal') {
@@ -145,7 +174,7 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
 
       <header className="sticky top-0 z-30 border-b border-border/60 bg-background/85 backdrop-blur-md">
         <div className="mx-auto flex h-20 w-full max-w-5xl items-center gap-4 px-6">
-          <Logo className="size-11 shrink-0" title="LedgerHand" />
+          <Brandmark className="size-11" />
           <div className="min-w-0">
             <Wordmark size="lg" className="block" />
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{content.nav.tagline}</p>
@@ -292,6 +321,42 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
               text={content.guardrails.outro}
               className="text-[0.9375rem] leading-relaxed text-muted-foreground"
             />
+          </div>
+        </Section>
+
+        {/* ------------------------------------------------------------- mcp */}
+        <Section id="mcp" heading={content.mcp.heading}>
+          <div className="mt-5 max-w-3xl">
+            <Blocks blocks={content.mcp.blocks} surface={content.mcp} />
+          </div>
+        </Section>
+
+        {/* ----------------------------------------------------------- agent */}
+        <Section id="agent" heading={content.agent.heading}>
+          <div className="mt-5 max-w-3xl">
+            <Blocks blocks={content.agent.blocks.slice(0, 2)} />
+          </div>
+
+          {/* Five axes, named, each with the variable that moves it. The
+              defaults live in packages/agent, which this application may not
+              import, and a number copied out of it would be a number nobody
+              counted. */}
+          <ul className="mt-6 grid max-w-3xl gap-2 sm:grid-cols-2">
+            {content.agent.limits.map((limit) => (
+              <li
+                key={limit.variable}
+                className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-surface-sunken px-3 py-2"
+              >
+                <span className="text-sm font-medium text-foreground">{limit.name}</span>
+                <code className="font-mono text-[0.6875rem] text-muted-foreground" translate="no">
+                  {limit.variable}
+                </code>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-6 max-w-3xl">
+            <Blocks blocks={content.agent.blocks.slice(2)} />
           </div>
         </Section>
 

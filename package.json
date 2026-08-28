@@ -20,13 +20,15 @@
     "test:coverage": "vitest run --coverage --reporter=default --reporter=json --outputFile.json=coverage/test-results.json",
     "counts": "node scripts/sync-counts.ts",
     "counts:check": "node scripts/sync-counts.ts --check",
+    "brand": "node scripts/brand-logo.ts",
+    "brand:check": "node scripts/brand-logo.ts --check",
     "db:generate": "pnpm --filter @ledgerhand/db db:generate",
     "db:migrate": "pnpm --filter @ledgerhand/db db:migrate",
     "db:seed": "pnpm --filter @ledgerhand/db db:seed",
     "db:reset": "pnpm --filter @ledgerhand/db db:reset",
     "evals": "pnpm build && pnpm --filter @ledgerhand/evals evals",
     "evals:record": "pnpm evals --k 3 --capability-k 10 --summary docs/metrics/evals.json && pnpm counts",
-    "verify": "pnpm build && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm counts:check",
+    "verify": "pnpm build && pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm counts:check && pnpm brand:check",
     "db:reseed": "pnpm --filter @ledgerhand/db db:reseed"
   },
   "devDependencies": {

@@ -2,11 +2,14 @@ import type * as Navigation from 'next/navigation'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CALLBACK_PARAM, HOME_PATH, LANDING_PATHS, SIGN_IN_PATH } from '@/lib/routes'
-import { DESTRUCTIVE_COUNT, OPERATION_COUNT } from '@/lib/operations'
 
 /**
  * The sign-in screen renders for somebody who has no session, and knows where
  * to send them once they do.
+ *
+ * It carries nothing but the form now: the thesis, the pillars and the
+ * recorded run moved to the landing page, and a second copy of an argument is
+ * the drift this repository argues against.
  *
  * It is the one public page that still reads a session, so the two things a
  * test process cannot have -- a session and request headers -- are the two
@@ -72,11 +75,6 @@ describe('the sign-in screen', () => {
     expect(html).toContain('Sign in')
     expect(html).toContain('guest@ledgerhand.cloud')
     expect(html).toContain('name="password"')
-  })
-
-  it('counts the irreversible operations rather than claiming a number', async () => {
-    const html = renderToStaticMarkup(await SignInPage({ searchParams: params() }))
-    expect(html).toContain(`${String(DESTRUCTIVE_COUNT)} of the ${String(OPERATION_COUNT)}`)
   })
 
   it('carries the destination into the form, so signing in returns you there', async () => {

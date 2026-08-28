@@ -157,6 +157,69 @@ Nothing was done a second time.)`,
     outro: `None of the four lives in a prompt. They live in [\`packages/domain\`](${REPOSITORY}/blob/main/packages/domain/src/use-cases/definition.ts) (which operation is destructive), [\`packages/mcp-server\`](${REPOSITORY}/blob/main/packages/mcp-server/src/server/build.ts) (what is advertised and what is refused), [\`packages/db\`](${REPOSITORY}/blob/main/packages/db/src/unit-of-work.ts) (one transaction for the effect, the event and the idempotency record) and [\`packages/agent\`](${REPOSITORY}/blob/main/packages/agent/src/budget.ts) (the five limits that end a run). A language model cannot talk its way past any of them, and neither can a bug in the agent.`,
   },
 
+  mcp: {
+    heading: 'The MCP server',
+    blocks: [
+      {
+        kind: 'text',
+        text: 'Every use case is a tool, derived from its descriptor rather than written out again. The schema advertised to the model is the schema that rejects it, and the risk in the tool annotations is the one the domain decided.',
+      },
+      { kind: 'mcp-surface' },
+      {
+        kind: 'text',
+        text: "The server is assembled on the SDK's low-level `Server` rather than `McpServer`, because the high-level API converts the zod schema itself and that conversion cannot express the cross-field rules several of these inputs carry, and publishing a schema that is not the one doing the rejecting is exactly the drift to avoid.",
+      },
+      {
+        kind: 'text',
+        text: 'And `tools/call` re-checks membership of the list it published, because a client is free to ask for a name it was never offered.',
+      },
+    ],
+    surfaceLabel: 'What the server advertises',
+    toolsSuffix: "filtered by the caller's role",
+    resources: [
+      'erp://catalog/products',
+      'erp://stock/position',
+      'erp://stock/below-minimum',
+      'erp://sales/orders/pending',
+      'erp://finance/receivables/overdue',
+      'erp://finance/payables/due-today',
+      'erp://cash/today',
+    ],
+    templates: ['erp://reports/sales/{from}/{to}', 'erp://fiscal/documents/{series}/{number}'],
+    prompts: [
+      'daily_cash_closing',
+      'minimum_stock_replenishment',
+      'overdue_receivables_review',
+      'month_end_review',
+    ],
+  },
+
+  agent: {
+    heading: 'The agent',
+    blocks: [
+      {
+        kind: 'text',
+        text: 'The agent is an MCP client and nothing else: no database driver, no domain import, no permission list of its own.',
+      },
+      {
+        kind: 'text',
+        text: 'Five limits end a run, because an agent fails in five different ways: it loops, it reads too much, it writes too much, it costs too much, or it never finishes.',
+      },
+      {
+        kind: 'text',
+        text: 'They are checked between steps rather than predicted before them, so a run overshoots by at most the step that broke the limit. Predicting the cost of a step would mean guessing the size of a tool result that has not happened yet, and a guess inside a safety mechanism is worse than a bounded overshoot.',
+      },
+    ],
+    limitsLabel: 'What ends a run',
+    limits: [
+      { name: 'Tool calls', variable: 'AGENT_MAX_TOOL_CALLS' },
+      { name: 'Input tokens', variable: 'AGENT_MAX_INPUT_TOKENS' },
+      { name: 'Output tokens', variable: 'AGENT_MAX_OUTPUT_TOKENS' },
+      { name: 'Cost', variable: 'AGENT_MAX_COST_USD' },
+      { name: 'Wall clock', variable: 'AGENT_MAX_WALL_CLOCK_MS' },
+    ],
+  },
+
   evals: {
     heading: 'Does it actually work?',
     lead: 'That is what `packages/evals` answers, and it answers by reading the database rather than the agent\'s summary. An agent that says "I have closed the cash session" and did not scores zero, and there is a test proving the suite is not fooled by exactly that.',

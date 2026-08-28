@@ -62,6 +62,14 @@ function borrowed(content: LandingContent): readonly (readonly [string, string])
     ['architecture.note', content.architecture.note],
   ]
 
+  for (const section of [content.mcp, content.agent]) {
+    entries.push([`${section.heading} heading`, section.heading])
+    for (const [index, block] of section.blocks.entries()) {
+      if (block.text === undefined) continue
+      entries.push([`${section.heading} block ${String(index)}`, block.text])
+    }
+  }
+
   for (const item of content.guardrails.items) {
     entries.push([`guardrails "${item.title}"`, item.title])
     for (const [index, block] of item.blocks.entries()) {

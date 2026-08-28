@@ -18,6 +18,10 @@ import evals from '@metrics/evals.json'
  */
 
 const english = (): string => renderToStaticMarkup(<LandingPageEnglish />)
+
+/** The recording specifically. The brand mark is an <img> on this page too, and
+ *  it is the first one, so 'the image' is no longer a thing a regex can mean. */
+const recordingTag = (html: string): string => /<img[^>]+demo[^>]*>/.exec(html)?.[0] ?? ''
 const portuguese = (): string => renderToStaticMarkup(<LandingPagePortuguese />)
 
 describe('the landing page', () => {
@@ -54,8 +58,10 @@ describe('the landing page', () => {
     // image this size arriving without them reflows everything under it, which
     // on this page is the entire argument.
     const html = english()
-    expect(html).toMatch(/<img[^>]+width="1280"[^>]+height="928"/)
-    expect(html).toMatch(/<img[^>]+fetchPriority="high"/)
+    const tag = recordingTag(html)
+    expect(tag).toMatch(/width="1280"/)
+    expect(tag).toMatch(/height="928"/)
+    expect(tag).toMatch(/fetchPriority="high"/)
   })
 
   it('preloads the recording, which is the largest thing on the page', () => {
@@ -82,7 +88,7 @@ describe('the landing page', () => {
   })
 
   it('describes the recording to somebody who cannot see it', () => {
-    const alt = /<img[^>]+alt="([^"]*)"/.exec(english())?.[1] ?? ''
+    const alt = /alt="([^"]*)"/.exec(recordingTag(english()))?.[1] ?? ''
     // Not "demo", not "screenshot": which three scenarios, and how they end.
     expect(alt).toBe(EN.hero.demoAlt)
     expect(alt).toContain('never offered')

@@ -28,7 +28,13 @@ export interface Block {
    * rather than something the component splices in at a remembered position,
    * so the content decides where it goes and nothing has to remember.
    */
-  readonly kind: 'text' | 'terminal' | 'role-counts'
+  /**
+   * `mcp-surface` renders what the server advertises: the tool count from the
+   * registry, and the resource, template and prompt names. The names are
+   * identifiers rather than copy, so they live in the content file; the count
+   * does not, for the same reason no other count does.
+   */
+  readonly kind: 'text' | 'terminal' | 'role-counts' | 'mcp-surface'
   readonly text?: string
   /** Terminal blocks only: whose words these are, for a screen reader. */
   readonly label?: string
@@ -94,6 +100,29 @@ export interface LandingContent {
     readonly intro: readonly string[]
     readonly items: readonly Guardrail[]
     readonly outro: string
+  }
+  /** What the server advertises, and why it is assembled the way it is. */
+  readonly mcp: {
+    readonly heading: string
+    readonly blocks: readonly Block[]
+    readonly surfaceLabel: string
+    readonly toolsSuffix: string
+    readonly resources: readonly string[]
+    readonly templates: readonly string[]
+    readonly prompts: readonly string[]
+  }
+  /** The five ways a run is bounded, which is the part a budget holder asks about. */
+  readonly agent: {
+    readonly heading: string
+    readonly blocks: readonly Block[]
+    readonly limitsLabel: string
+    /**
+     * The limits by name and by environment variable, with no defaults. The
+     * numbers live in `packages/agent`, and the web application may not import
+     * it -- the agent's dependencies are its own. Naming the five axes is the
+     * claim; the values are in the README, next to the code that holds them.
+     */
+    readonly limits: readonly { readonly name: string; readonly variable: string }[]
   }
   readonly evals: {
     readonly heading: string
