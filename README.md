@@ -103,7 +103,7 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
 | Tenant isolation   | Row level security, attacked from five directions by tests               |
 | Demo data          | 90 days of reproducible trading, generated through the real use cases    |
-| Tests              | 466 passing, 96% line coverage on the domain, property-based             |
+| Tests              | 473 passing, 96% line coverage on the domain, property-based             |
 | Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
 | Web UI             | 21 routes, role-filtered, dark and light                                 |
 | ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
@@ -277,6 +277,8 @@ task: <the sentence it was given>
 approvals: <n> of <n> granted
 spend: $<usd>, <n> in / <n> out, <n>s
 ```
+
+There is no retrieval-augmented generation here, and that is a decision rather than an omission. RAG exists to get unstructured knowledge into a context window; this knowledge is a relational schema, and the questions asked of it -- who is overdue, by how much, since when -- have exact answers that a nearest-neighbour search would only approximate. An embedding index would also be a second copy of the data with none of the boundary around it: it flattens rows into chunks, losing the `tenant_id` and the capability check that decide what this agent may see at all, and it is stale from the moment an order is invoiced. The agent retrieves constantly. It does so through tools and resources the domain authorises, which is exact, current, and inside the tenant.
 
 Running the agent needs `ANTHROPIC_API_KEY`. Everything else in this repository runs without one.
 
@@ -502,10 +504,10 @@ packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         9 tests, proving the scoring catches an agent that lies
 packages/db           20 tests, against a real Postgres 17: RLS, persistence,
                       idempotency, agent attribution
-apps/web             147 tests, the routing contract and the public page
+apps/web             154 tests, the routing contract and the public page
                      ---
-                     468 collected. Two of them are the placeholders that report
-                     a missing database, so with Docker up 466 run and pass.
+                     475 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 473 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:

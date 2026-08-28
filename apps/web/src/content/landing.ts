@@ -34,7 +34,12 @@ export interface Block {
    * identifiers rather than copy, so they live in the content file; the count
    * does not, for the same reason no other count does.
    */
-  readonly kind: 'text' | 'terminal' | 'role-counts' | 'mcp-surface'
+  /**
+   * `budget-limits` renders the five axes a run is bounded on. Like the two
+   * above it is a block kind rather than something the component splices in at
+   * a remembered index, so the content decides where it sits.
+   */
+  readonly kind: 'text' | 'terminal' | 'role-counts' | 'mcp-surface' | 'budget-limits'
   readonly text?: string
   /** Terminal blocks only: whose words these are, for a screen reader. */
   readonly label?: string

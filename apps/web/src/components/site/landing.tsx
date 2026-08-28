@@ -89,10 +89,13 @@ function Section({
 function Blocks({
   blocks,
   surface,
+  limits,
 }: {
   readonly blocks: readonly Block[]
   /** Only the MCP section has one; the listing it renders is counted, not typed. */
   readonly surface?: LandingContent['mcp']
+  /** Only the agent section has these. */
+  readonly limits?: LandingContent['agent']
 }): React.JSX.Element {
   return (
     <>
@@ -101,6 +104,37 @@ function Blocks({
 
         if (block.kind === 'role-counts') {
           return <Terminal key={key} label="tools/list" text={roleOperationsListing()} />
+        }
+
+        if (block.kind === 'budget-limits') {
+          if (limits === undefined) return null
+          return (
+            <figure key={key} className="my-5">
+              <figcaption className="mb-1.5 text-[0.6875rem] font-medium tracking-wide text-muted-foreground uppercase">
+                {limits.limitsLabel}
+              </figcaption>
+              {/* Five axes, named, each with the variable that moves it. The
+                  defaults live in packages/agent, which this application may
+                  not import, and a number copied out of it would be a number
+                  nobody counted. */}
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {limits.limits.map((limit) => (
+                  <li
+                    key={limit.variable}
+                    className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-surface-sunken px-3 py-2"
+                  >
+                    <span className="text-sm font-medium text-foreground">{limit.name}</span>
+                    <code
+                      className="font-mono text-[0.6875rem] text-muted-foreground"
+                      translate="no"
+                    >
+                      {limit.variable}
+                    </code>
+                  </li>
+                ))}
+              </ul>
+            </figure>
+          )
         }
 
         if (block.kind === 'mcp-surface') {
@@ -337,29 +371,7 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
         {/* ----------------------------------------------------------- agent */}
         <Section id="agent" heading={content.agent.heading}>
           <div className="mt-5 max-w-3xl">
-            <Blocks blocks={content.agent.blocks.slice(0, 2)} />
-          </div>
-
-          {/* Five axes, named, each with the variable that moves it. The
-              defaults live in packages/agent, which this application may not
-              import, and a number copied out of it would be a number nobody
-              counted. */}
-          <ul className="mt-6 grid max-w-3xl gap-2 sm:grid-cols-2">
-            {content.agent.limits.map((limit) => (
-              <li
-                key={limit.variable}
-                className="flex items-baseline justify-between gap-3 rounded-lg border border-border bg-surface-sunken px-3 py-2"
-              >
-                <span className="text-sm font-medium text-foreground">{limit.name}</span>
-                <code className="font-mono text-[0.6875rem] text-muted-foreground" translate="no">
-                  {limit.variable}
-                </code>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-6 max-w-3xl">
-            <Blocks blocks={content.agent.blocks.slice(2)} />
+            <Blocks blocks={content.agent.blocks} limits={content.agent} />
           </div>
         </Section>
 

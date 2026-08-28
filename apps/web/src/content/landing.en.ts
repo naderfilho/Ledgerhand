@@ -11,7 +11,7 @@ const REPOSITORY = 'https://github.com/naderfilho/Ledgerhand'
  */
 export const EN: LandingContent = {
   meta: {
-    title: 'Ledgerhand -- an ERP an AI agent can operate safely',
+    title: 'Ledgerhand -- an MCP server and an AI agent that runs a real ERP',
     description:
       'A working ERP for a trading company, an MCP server that exposes its operations as tools, and an agent that operates the business through those tools under guardrails the system enforces rather than requests in a prompt.',
   },
@@ -173,6 +173,23 @@ Nothing was done a second time.)`,
         kind: 'text',
         text: 'And `tools/call` re-checks membership of the list it published, because a client is free to ask for a name it was never offered.',
       },
+      {
+        kind: 'text',
+        text: 'Against the database directly, which is what a desktop MCP client launches',
+      },
+      {
+        kind: 'terminal',
+        label: "A desktop client's configuration",
+        text: '{\n  "mcpServers": {\n    "ledgerhand": {\n      "command": "node",\n      "args": ["packages/mcp-server/dist/bin/stdio.js"],\n      "env": {\n        "DATABASE_URL": "postgres://ledgerhand_app:ledgerhand_app@localhost:5432/ledgerhand",\n        "MCP_USER_EMAIL": "finance@ledgerhand.cloud"\n      }\n    }\n  }\n}',
+      },
+      {
+        kind: 'text',
+        text: "`MCP_USER_EMAIL` names the user; the tenant and the role come from that user's row. Pointing it at `readonly@ledgerhand.cloud` produces a server that genuinely cannot write.",
+      },
+      {
+        kind: 'text',
+        text: "Or over HTTP, through the ERP's own API, which is the configuration where the MCP server holds no database credentials at all",
+      },
     ],
     surfaceLabel: 'What the server advertises',
     toolsSuffix: "filtered by the caller's role",
@@ -208,6 +225,20 @@ Nothing was done a second time.)`,
       {
         kind: 'text',
         text: 'They are checked between steps rather than predicted before them, so a run overshoots by at most the step that broke the limit. Predicting the cost of a step would mean guessing the size of a tool result that has not happened yet, and a guess inside a safety mechanism is worse than a bounded overshoot.',
+      },
+      { kind: 'budget-limits' },
+      {
+        kind: 'text',
+        text: "A run ends with a transcript: what was asked, what came back, what was approved, what it cost. It records requests, not effects. What actually changed is in the ERP's own event log, joined by the run id, because a transcript is written by the party whose self-report should not be the last word.",
+      },
+      {
+        kind: 'terminal',
+        label: 'What a run leaves behind',
+        text: 'run <uuid> | completed | budget-exhausted | refused-by-model | failed\ntask: <the sentence it was given>\n<n> exchanges, <n> tool calls, <n> refused\napprovals: <n> of <n> granted\nspend: $<usd>, <n> in / <n> out, <n>s',
+      },
+      {
+        kind: 'text',
+        text: 'There is no retrieval-augmented generation here, and that is a decision rather than an omission. RAG exists to get unstructured knowledge into a context window; this knowledge is a relational schema, and the questions asked of it -- who is overdue, by how much, since when -- have exact answers that a nearest-neighbour search would only approximate. An embedding index would also be a second copy of the data with none of the boundary around it: it flattens rows into chunks, losing the `tenant_id` and the capability check that decide what this agent may see at all, and it is stale from the moment an order is invoiced. The agent retrieves constantly. It does so through tools and resources the domain authorises, which is exact, current, and inside the tenant.',
       },
     ],
     limitsLabel: 'What ends a run',

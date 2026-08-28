@@ -17,7 +17,7 @@ const REPOSITORY = 'https://github.com/naderfilho/Ledgerhand'
  */
 export const PT: LandingContent = {
   meta: {
-    title: 'Ledgerhand -- um ERP que um agente de IA consegue operar com segurança',
+    title: 'Ledgerhand -- um servidor MCP e um agente de IA que opera um ERP real',
     description:
       'Um ERP funcional para uma distribuidora, um servidor MCP que expõe suas operações como ferramentas, e um agente que opera o negócio por essas ferramentas sob proteções que o sistema impõe, em vez de pedir num prompt.',
   },
@@ -180,6 +180,23 @@ Nothing was done a second time.)`,
         kind: 'text',
         text: 'E `tools/call` reconfere se o nome pedido está na lista que publicou, porque um cliente é livre para pedir um nome que nunca lhe foi oferecido.',
       },
+      {
+        kind: 'text',
+        text: 'Direto contra o banco, que é o que um cliente MCP de desktop inicia',
+      },
+      {
+        kind: 'terminal',
+        label: 'A configuração de um cliente de desktop',
+        text: '{\n  "mcpServers": {\n    "ledgerhand": {\n      "command": "node",\n      "args": ["packages/mcp-server/dist/bin/stdio.js"],\n      "env": {\n        "DATABASE_URL": "postgres://ledgerhand_app:ledgerhand_app@localhost:5432/ledgerhand",\n        "MCP_USER_EMAIL": "finance@ledgerhand.cloud"\n      }\n    }\n  }\n}',
+      },
+      {
+        kind: 'text',
+        text: '`MCP_USER_EMAIL` nomeia o usuário; o tenant e o papel vêm da linha desse usuário. Apontando para `readonly@ledgerhand.cloud`, o servidor resultante genuinamente não consegue escrever.',
+      },
+      {
+        kind: 'text',
+        text: 'Ou por HTTP, através da própria API do ERP, que é a configuração em que o servidor MCP não guarda credencial de banco nenhuma',
+      },
     ],
     surfaceLabel: 'O que o servidor anuncia',
     toolsSuffix: 'filtradas pelo papel de quem chama',
@@ -215,6 +232,20 @@ Nothing was done a second time.)`,
       {
         kind: 'text',
         text: 'Eles são conferidos entre passos em vez de previstos antes deles, então uma execução ultrapassa no máximo pelo passo que rompeu o limite. Prever o custo de um passo significaria adivinhar o tamanho de um resultado de ferramenta que ainda não aconteceu, e um palpite dentro de um mecanismo de segurança é pior que um excesso limitado.',
+      },
+      { kind: 'budget-limits' },
+      {
+        kind: 'text',
+        text: 'Uma execução termina com um transcript: o que foi pedido, o que voltou, o que foi aprovado, quanto custou. Ele registra pedidos, não efeitos. O que de fato mudou está no log de eventos do próprio ERP, unido pelo id da execução, porque um transcript é escrito pela parte cuja versão sobre si mesma não deve ser a última palavra.',
+      },
+      {
+        kind: 'terminal',
+        label: 'O que uma execução deixa para trás',
+        text: 'run <uuid> | completed | budget-exhausted | refused-by-model | failed\ntask: <the sentence it was given>\n<n> exchanges, <n> tool calls, <n> refused\napprovals: <n> of <n> granted\nspend: $<usd>, <n> in / <n> out, <n>s',
+      },
+      {
+        kind: 'text',
+        text: 'Não há geração aumentada por recuperação aqui, e isso é uma decisão e não uma omissão. RAG existe para levar conhecimento não estruturado até a janela de contexto; este conhecimento é um schema relacional, e as perguntas que se fazem a ele -- quem está em atraso, por quanto, desde quando -- têm respostas exatas que uma busca por vizinho mais próximo apenas aproximaria. Um índice de embeddings seria também uma segunda cópia dos dados sem nenhuma das fronteiras em volta: ele achata linhas em trechos, perdendo o `tenant_id` e a verificação de capacidade que decidem o que este agente pode sequer ver, e fica desatualizado no instante em que um pedido é faturado. O agente recupera o tempo todo. Ele o faz por ferramentas e recursos que o domínio autoriza, o que é exato, atual, e dentro do tenant.',
       },
     ],
     limitsLabel: 'O que encerra uma execução',
