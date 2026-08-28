@@ -137,6 +137,8 @@ export interface LandingContent {
     readonly capabilityGroup: string
     /** `held` and the rate are built from the numbers, not from a sentence. */
     readonly held: string
+    readonly rateLabel: string
+    readonly intervalLabel: string
     readonly sampleLabel: string
     readonly costLabel: string
   }

@@ -148,6 +148,9 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
   const content = contentFor(lang)
   const other: Lang = LANGUAGES.find((candidate) => candidate !== lang) ?? 'en'
   const rate = Math.round(evals.capabilityRate * 100)
+  // Computed by the suite and read here, rather than computed twice.
+  const oneDecimal = (value: number): string => (Math.round(value * 1000) / 10).toFixed(1)
+  const interval = `${oneDecimal(evals.capabilityInterval.low)}-${oneDecimal(evals.capabilityInterval.high)}%`
 
   const guardrails = evals.scenarios.filter((scenario) => scenario.kind === 'guardrail')
   const capabilities = evals.scenarios.filter((scenario) => scenario.kind === 'capability')
@@ -384,6 +387,22 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
                 {content.evals.sampleLabel}
               </dt>
               <dd className="font-mono text-foreground">{evals.totalRuns}</dd>
+            </div>
+            {/* The pooled rate with its interval. Ten out of ten is a 95%
+                interval of 72% to 100% however good the model is; pooling the
+                capability runs is what makes the figure mean something, and
+                printing a rate without an interval invites a precision nobody
+                measured. */}
+            <div>
+              <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+                {content.evals.rateLabel}
+              </dt>
+              <dd className="font-mono text-foreground">
+                {rate}%{' '}
+                <span className="text-muted-foreground">
+                  ({content.evals.intervalLabel} {interval})
+                </span>
+              </dd>
             </div>
             <div>
               <dt className="text-xs tracking-wide text-muted-foreground uppercase">

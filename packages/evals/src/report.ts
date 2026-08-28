@@ -15,6 +15,39 @@ function rate(passed: number, attempted: number): string {
   return `${String(passed)}/${String(attempted)} (${String(percentage)}%)`
 }
 
+/**
+ * A 95% Wilson score interval for a success rate.
+ *
+ * Ten out of ten is not evidence of a hundred per cent. It is evidence of
+ * something above roughly seventy, and a report that prints the first number
+ * without the second is inviting the reader to believe a certainty nobody
+ * measured. Wilson rather than the textbook normal approximation because the
+ * normal one is worst exactly where these results live: at the boundary, where
+ * it produces intervals that run past 100% or collapse to zero width.
+ */
+export function wilsonInterval(
+  passed: number,
+  attempted: number,
+): { readonly low: number; readonly high: number } {
+  if (attempted === 0) return { low: 0, high: 1 }
+  const z = 1.959963984540054
+  const p = passed / attempted
+  const denominator = 1 + (z * z) / attempted
+  const centre = p + (z * z) / (2 * attempted)
+  const spread = z * Math.sqrt((p * (1 - p)) / attempted + (z * z) / (4 * attempted * attempted))
+  return {
+    low: Math.max(0, (centre - spread) / denominator),
+    high: Math.min(1, (centre + spread) / denominator),
+  }
+}
+
+/** The rate with the interval beside it, which is the honest way to quote one. */
+export function rateWithInterval(passed: number, attempted: number): string {
+  const { low, high } = wilsonInterval(passed, attempted)
+  const percent = (value: number): string => String(Math.round(value * 100))
+  return `${rate(passed, attempted)}, 95% CI ${percent(low)}-${percent(high)}%`
+}
+
 export function toMarkdown(report: SuiteReport): string {
   const lines: string[] = []
   lines.push(`### Guardrails`, '')
@@ -33,13 +66,16 @@ export function toMarkdown(report: SuiteReport): string {
   lines.push('| Scenario | Success | What it asks for |', '| --- | --- | --- |')
   for (const scenario of report.scenarios.filter((entry) => entry.kind === 'capability')) {
     lines.push(
-      `| \`${scenario.scenario}\` | ${rate(scenario.passed, scenario.attempted)} | ${scenario.intent} |`,
+      `| \`${scenario.scenario}\` | ${rateWithInterval(scenario.passed, scenario.attempted)} | ${scenario.intent} |`,
     )
   }
 
+  const capabilities = report.scenarios.filter((entry) => entry.kind === 'capability')
+  const passed = capabilities.reduce((total, entry) => total + entry.passed, 0)
+  const attempted = capabilities.reduce((total, entry) => total + entry.attempted, 0)
   lines.push(
     '',
-    `Overall capability rate: ${String(Math.round(report.capabilityRate * 100))}%. Cost of the suite: $${report.costUsd.toFixed(4)}.`,
+    `Overall capability rate: ${rateWithInterval(passed, attempted)}. Cost of the suite: $${report.costUsd.toFixed(4)}.`,
   )
 
   const failures = report.scenarios.flatMap((scenario) =>
@@ -112,6 +148,11 @@ export function toText(report: SuiteReport): string {
  * exactly that reason, but naming the model turns a measurement into a
  * comparison nobody ran.
  */
+export interface Interval {
+  readonly low: number
+  readonly high: number
+}
+
 export interface EvalsSummary {
   /** The day the suite was run, so a reader can tell a fresh number from an old one. */
   readonly measuredOn: string
@@ -120,16 +161,28 @@ export interface EvalsSummary {
   readonly costUsd: number
   readonly guardrailsHeld: boolean
   readonly capabilityRate: number
+  /**
+   * The 95% interval around that rate, computed here rather than by whoever
+   * renders it. The README, the public page and the CI summary all quote this
+   * number, and three implementations of the same statistic is three chances to
+   * publish a different one.
+   */
+  readonly capabilityInterval: Interval
   readonly scenarios: readonly {
     readonly name: string
     readonly kind: ScenarioKind
     readonly intent: string
     readonly passed: number
     readonly attempted: number
+    readonly interval: Interval
   }[]
 }
 
 export function toSummary(report: SuiteReport, measuredOn: string): EvalsSummary {
+  const capabilities = report.scenarios.filter((entry) => entry.kind === 'capability')
+  const passed = capabilities.reduce((total, entry) => total + entry.passed, 0)
+  const attempted = capabilities.reduce((total, entry) => total + entry.attempted, 0)
+
   return {
     measuredOn,
     k: report.k,
@@ -137,12 +190,14 @@ export function toSummary(report: SuiteReport, measuredOn: string): EvalsSummary
     costUsd: report.costUsd,
     guardrailsHeld: report.guardrailsHeld,
     capabilityRate: report.capabilityRate,
+    capabilityInterval: wilsonInterval(passed, attempted),
     scenarios: report.scenarios.map((scenario) => ({
       name: scenario.scenario,
       kind: scenario.kind,
       intent: scenario.intent,
       passed: scenario.passed,
       attempted: scenario.attempted,
+      interval: wilsonInterval(scenario.passed, scenario.attempted),
     })),
   }
 }

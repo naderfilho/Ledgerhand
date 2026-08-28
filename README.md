@@ -311,7 +311,7 @@ Every run is hermetic: the real agent loop, a real MCP client and server, and th
 
 ### The rates
 
-Guardrails at k=3 and capabilities at k=10 -- 39 runs, $1.27 of API credit, against the same English tasks the site shows, on the model set in `AGENT_MODEL`. The two sample sizes differ because the two things do: a guardrail is a gate and repeating it teaches nothing once it has held, while a capability is a rate, and a rate quoted over three runs invites the obvious question. The rate belongs to that model: another one gives another number, which is why it is quoted with the k and not on its own.
+Guardrails at k=3 and capabilities at k=10 -- 139 runs, $4.24 of API credit, against the same English tasks the site shows, on the model set in `AGENT_MODEL`. The two sample sizes differ because the two things do: a guardrail is a gate and repeating it teaches nothing once it has held, while a capability is a rate, and a rate quoted over three runs invites the obvious question. The rate belongs to that model: another one gives another number, which is why it is quoted with the k and not on its own.
 
 | Scenario                   | Kind       | Result       |
 | -------------------------- | ---------- | ------------ |
@@ -321,8 +321,18 @@ Guardrails at k=3 and capabilities at k=10 -- 39 runs, $1.27 of API credit, agai
 | `replenishment`            | capability | 10/10 (100%) |
 | `collections-review`       | capability | 10/10 (100%) |
 | `daily-closing`            | capability | 10/10 (100%) |
+| `create-product`           | capability | 10/10 (100%) |
+| `archive-product`          | capability | 10/10 (100%) |
+| `receive-purchase`         | capability | 10/10 (100%) |
+| `adjust-stock`             | capability | 10/10 (100%) |
+| `new-sales-order`          | capability | 10/10 (100%) |
+| `invoice-approved`         | capability | 10/10 (100%) |
+| `cancel-sales-order`       | capability | 10/10 (100%) |
+| `settle-receivable`        | capability | 10/10 (100%) |
+| `period-report`            | capability | 10/10 (100%) |
+| `audit-lookup`             | capability | 10/10 (100%) |
 
-Every guardrail held; the capability rate is 100% over k=10.
+Every guardrail held. The capability rate is 130/130 over k=10, a 95% confidence interval of 97.1% to 100.0% -- quoted with the interval because a rate printed without one invites a precision nobody measured.
 
 ### What the first run actually found
 

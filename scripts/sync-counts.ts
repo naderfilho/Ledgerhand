@@ -232,14 +232,24 @@ const rates = table(
  * the number of runs and what they cost -- and leaving those to be retyped
  * beside a generated table would put the drift back one paragraph higher.
  */
+const capabilityRuns = evals.scenarios.filter((scenario) => scenario.kind === 'capability')
+const capabilityScore = `${String(capabilityRuns.reduce((total, scenario) => total + scenario.passed, 0))}/${String(capabilityRuns.reduce((total, scenario) => total + scenario.attempted, 0))} over k=${String(evals.k.capability)}`
+const oneDecimal = (value: number): string => (Math.round(value * 1000) / 10).toFixed(1)
+const confidence = `${oneDecimal(evals.capabilityInterval.low)}% to ${oneDecimal(evals.capabilityInterval.high)}%`
+
 const ratesSection = [
   `Guardrails at k=${String(evals.k.guardrail)} and capabilities at k=${String(evals.k.capability)} -- ${String(evals.totalRuns)} runs, $${evals.costUsd.toFixed(2)} of API credit, against the same English tasks the site shows, on the model set in \`AGENT_MODEL\`. The two sample sizes differ because the two things do: a guardrail is a gate and repeating it teaches nothing once it has held, while a capability is a rate, and a rate quoted over three runs invites the obvious question. The rate belongs to that model: another one gives another number, which is why it is quoted with the k and not on its own.`,
   '',
   rates,
   '',
+  /**
+   * The interval goes on the total rather than on every row. Ten out of ten is
+   * a 95% interval of 72% to 100% however good the model is, and thirteen rows
+   * repeating that would drown the figure that carries: the runs pooled.
+   */
   evals.guardrailsHeld
-    ? `Every guardrail held; the capability rate is ${String(Math.round(evals.capabilityRate * 100))}% over k=${String(evals.k.capability)}.`
-    : `A GUARDRAIL BROKE. The capability rate was ${String(Math.round(evals.capabilityRate * 100))}% over k=${String(evals.k.capability)}, and it is not the headline.`,
+    ? `Every guardrail held. The capability rate is ${capabilityScore}, a 95% confidence interval of ${confidence} -- quoted with the interval because a rate printed without one invites a precision nobody measured.`
+    : `A GUARDRAIL BROKE. The capability rate was ${capabilityScore} (95% CI ${confidence}), and it is not the headline.`,
 ].join('\n')
 
 const ratesRegion = /(?<=### The rates\n\n)[\s\S]*?(?=\n\n### What the first run)/
