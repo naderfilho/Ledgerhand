@@ -36,6 +36,12 @@ const FLATTENED_README = flat(README)
 /** Every sentence the page borrows, and where on the page it sits. */
 function borrowed(content: LandingContent): readonly (readonly [string, string])[] {
   const entries: (readonly [string, string])[] = [
+    // The page's title and the README's heading are the same sentence, and it
+    // took somebody reading both to notice they had stopped being. The title is
+    // what a search result and a pasted link show; the heading is what a GitHub
+    // visitor reads first. Two front doors to one project should agree on what
+    // is behind them.
+    ['meta.title', content.meta.title],
     ['meta.description', content.meta.description],
     ['hero.thesis', content.hero.thesis],
     ['hero.lede', content.hero.lede],

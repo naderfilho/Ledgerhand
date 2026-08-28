@@ -1,4 +1,4 @@
-# Ledgerhand
+# Ledgerhand -- an MCP server and an AI agent that runs a real ERP
 
 [![CI](https://github.com/naderfilho/Ledgerhand/actions/workflows/ci.yml/badge.svg)](https://github.com/naderfilho/Ledgerhand/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
@@ -103,7 +103,7 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
 | Tenant isolation   | Row level security, attacked from five directions by tests               |
 | Demo data          | 90 days of reproducible trading, generated through the real use cases    |
-| Tests              | 475 passing, 96% line coverage on the domain, property-based             |
+| Tests              | 476 passing, 96% line coverage on the domain, property-based             |
 | Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
 | Web UI             | 21 routes, role-filtered, dark and light                                 |
 | ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
@@ -504,10 +504,10 @@ packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         9 tests, proving the scoring catches an agent that lies
 packages/db           20 tests, against a real Postgres 17: RLS, persistence,
                       idempotency, agent attribution
-apps/web             156 tests, the routing contract and the public page
+apps/web             157 tests, the routing contract and the public page
                      ---
-                     477 collected. Two of them are the placeholders that report
-                     a missing database, so with Docker up 475 run and pass.
+                     478 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 476 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:
