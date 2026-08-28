@@ -130,7 +130,14 @@ export default async function SignInPage({
             </a>
           </p>
           <p className="flex items-center gap-4">
-            <span>PolyForm Noncommercial</span>
+            <a
+              href={`${REPOSITORY}/blob/main/LICENSE.md`}
+              target="_blank"
+              rel="noreferrer"
+              className="transition hover:text-foreground"
+            >
+              Apache 2.0
+            </a>
             <a
               href={REPOSITORY}
               target="_blank"

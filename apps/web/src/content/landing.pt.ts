@@ -346,7 +346,7 @@ Nothing was done a second time.)`,
     builtBy: 'Projetado e construído por',
     repository: 'Código no GitHub',
     decisions: 'Decisões de projeto',
-    licence: 'PolyForm Noncommercial',
+    licence: 'Apache 2.0',
     measured: 'Taxas medidas em',
   },
 }

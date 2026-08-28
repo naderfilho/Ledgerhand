@@ -1,9 +1,9 @@
 {
-  "total": 475,
-  "passed": 473,
+  "total": 477,
+  "passed": 475,
   "pending": 2,
   "perProject": {
-    "apps/web": 154,
+    "apps/web": 156,
     "packages/agent": 18,
     "packages/db": 20,
     "packages/domain": 249,

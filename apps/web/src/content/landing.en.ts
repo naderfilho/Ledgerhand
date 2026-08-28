@@ -339,7 +339,7 @@ Nothing was done a second time.)`,
     builtBy: 'Designed and built by',
     repository: 'Source on GitHub',
     decisions: 'Design decisions',
-    licence: 'PolyForm Noncommercial',
+    licence: 'Apache 2.0',
     measured: 'Rates measured on',
   },
 }

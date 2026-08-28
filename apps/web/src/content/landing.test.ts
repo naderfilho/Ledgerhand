@@ -203,3 +203,39 @@ describe('the Portuguese', () => {
     }
   })
 })
+
+describe('the licence the page claims', () => {
+  const LICENCE = readFileSync(
+    fileURLToPath(new URL('../../../../LICENSE.md', import.meta.url)),
+    'utf8',
+  )
+
+  /**
+   * Licences whose terms let the page call this open source. The list is short
+   * on purpose: what makes one belong here is approval by the OSI, not that it
+   * felt generous to whoever added it.
+   */
+  const OPEN_SOURCE = ['Apache License', 'MIT License', 'GNU AFFERO', 'GNU GENERAL PUBLIC']
+
+  it('is the licence the repository actually ships', () => {
+    // The footer named PolyForm Noncommercial for as long as LICENSE.md was
+    // PolyForm Noncommercial, and would have gone on naming it afterwards.
+    for (const content of [EN, PT]) {
+      expect(LICENCE).toContain(content.footer.licence.split(' ')[0] ?? '')
+    }
+  })
+
+  it('does not call the project open source unless the licence is', () => {
+    // PolyForm Noncommercial restricts the field of use, so it fails the sixth
+    // clause of the Open Source Definition. It sat under a header that said
+    // "An open-source ERP" on every page view, and nothing caught it.
+    const claimsOpenSource = [EN, PT].some((content) =>
+      /open[- ]source|c\u00f3digo aberto/i.test(content.nav.tagline),
+    )
+    if (!claimsOpenSource) return
+    expect(
+      OPEN_SOURCE.some((name) => LICENCE.toUpperCase().includes(name.toUpperCase())),
+      'the tagline says open source; LICENSE.md is not an OSI-approved licence',
+    ).toBe(true)
+  })
+})

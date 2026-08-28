@@ -5,7 +5,7 @@
 ![Next.js 16](https://img.shields.io/badge/Next.js_16-000000?logo=nextdotjs&logoColor=white)
 ![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL_17-4169E1?logo=postgresql&logoColor=white)
 ![Model Context Protocol](https://img.shields.io/badge/MCP-server-8A63D2)
-[![PolyForm Noncommercial License](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue)](LICENSE.md)
+[![Apache 2.0 License](https://img.shields.io/badge/License-Apache_2.0-blue)](LICENSE.md)
 
 **An ERP is the hard part. Letting an AI agent run it safely is the interesting part.**
 
@@ -103,7 +103,7 @@ None of the four lives in a prompt. They live in [`packages/domain`](packages/do
 | Postgres + Drizzle | Schema, migrations, adapters, gap-free fiscal numbering                  |
 | Tenant isolation   | Row level security, attacked from five directions by tests               |
 | Demo data          | 90 days of reproducible trading, generated through the real use cases    |
-| Tests              | 473 passing, 96% line coverage on the domain, property-based             |
+| Tests              | 475 passing, 96% line coverage on the domain, property-based             |
 | Authentication     | Auth.js v5, five roles, a Postgres role that reads `users` and `tenants` |
 | Web UI             | 21 routes, role-filtered, dark and light                                 |
 | ERP HTTP API       | The same use cases over HTTP, a bearer token mapped to a real user       |
@@ -504,10 +504,10 @@ packages/agent        18 tests, a scripted model against the real MCP server
 packages/evals         9 tests, proving the scoring catches an agent that lies
 packages/db           20 tests, against a real Postgres 17: RLS, persistence,
                       idempotency, agent attribution
-apps/web             154 tests, the routing contract and the public page
+apps/web             156 tests, the routing contract and the public page
                      ---
-                     475 collected. Two of them are the placeholders that report
-                     a missing database, so with Docker up 473 run and pass.
+                     477 collected. Two of them are the placeholders that report
+                     a missing database, so with Docker up 475 run and pass.
 ```
 
 Property-based tests (fast-check) cover the parts where a unit test only proves one example:
@@ -521,4 +521,6 @@ Two production bugs were found by these rather than by review: a manual stock ex
 
 ## Licence
 
-[PolyForm Noncommercial 1.0.0](LICENSE.md). The code is public to be read and learned from; using it to run a business is not covered.
+[Apache 2.0](LICENSE.md). Read it, run it, build on it, sell what you build. Attribution and the patent grant are the whole of what is asked in return.
+
+It was PolyForm Noncommercial until the page started calling this an open-source ERP, which PolyForm is not: it restricts the field of use, so it fails the sixth clause of the Open Source Definition and the honest word for it is source-available. Two ways to fix a sentence that was not true, and this is the one that keeps the sentence.
