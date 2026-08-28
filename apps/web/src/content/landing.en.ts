@@ -25,6 +25,7 @@ export const EN: LandingContent = {
   },
 
   hero: {
+    eyebrow: ['Model Context Protocol', 'AI agent', 'A real ERP'],
     thesis: 'An ERP is the hard part. Letting an AI agent run it safely is the interesting part.',
     lede: 'A working ERP for a trading company, an MCP server that exposes its operations as tools, and an agent that operates the business through those tools under guardrails the system enforces rather than requests in a prompt.',
     claim:

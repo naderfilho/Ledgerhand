@@ -31,6 +31,7 @@ export const PT: LandingContent = {
   },
 
   hero: {
+    eyebrow: ['Model Context Protocol', 'Agente de IA', 'Um ERP real'],
     thesis:
       'O ERP é a parte difícil. Deixar um agente de IA operá-lo com segurança é a parte interessante.',
     lede: 'Um ERP funcional para uma distribuidora, um servidor MCP que expõe suas operações como ferramentas, e um agente que opera o negócio por essas ferramentas sob proteções que o sistema impõe, em vez de pedir num prompt.',

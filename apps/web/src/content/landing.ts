@@ -80,6 +80,14 @@ export interface LandingContent {
     readonly otherLanguage: string
   }
   readonly hero: {
+    /**
+     * The line above the headline. Three labels rather than a sentence: the
+     * thesis stays the headline because it is the better line, and this is what
+     * puts the protocol and the agent in front of it for somebody skimming.
+     * Stored as parts so the separator is the design's decision and never a
+     * character a screen reader has to read out.
+     */
+    readonly eyebrow: readonly string[]
     readonly thesis: string
     readonly lede: string
     readonly claim: string

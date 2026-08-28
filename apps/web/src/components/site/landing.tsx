@@ -249,6 +249,19 @@ export function Landing({ lang }: { readonly lang: Lang }): React.JSX.Element {
       <main className="relative z-10 mx-auto w-full max-w-5xl px-6">
         {/* ------------------------------------------------------------ hero */}
         <section id="hero" className="pt-14 pb-16 lg:pt-20">
+          {/* What the thing is, before the argument for it. The separators are
+              hidden from the accessibility tree: a screen reader reading three
+              labels does not also need to hear three middots. */}
+          <p className="mb-5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[0.6875rem] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+            {content.hero.eyebrow.map((part, index) => (
+              <span key={part} className="flex items-center gap-2.5">
+                {index === 0 ? null : (
+                  <span aria-hidden className="size-1 rounded-full bg-primary/60" />
+                )}
+                {part}
+              </span>
+            ))}
+          </p>
           <h1 className="max-w-3xl font-display text-[2.25rem] leading-[1.12] font-semibold tracking-tight text-balance lg:text-[3rem]">
             {content.hero.thesis}
           </h1>
